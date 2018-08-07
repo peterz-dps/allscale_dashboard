@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
+	"flag"
 	"io"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dustin/go-broadcast"
@@ -19,19 +21,28 @@ var broadcaster = broadcast.NewBroadcaster(100)
 // ----------------------------------------------------------------------- Main
 
 func main() {
-	go messageGenerator()
-	go listenAndServeTCP()
-	listenAndServeHTTP()
+	tcpPort := flag.Int("tcp-port", 1337, "port for the TCP listener")
+	httpPort := flag.Int("http-port", 8080, "port for the HTTP listener")
+	msgGen := flag.Bool("msg-gen", false, "generate random messages")
+	flag.Parse()
+
+	if *msgGen {
+		go messageGenerator()
+	}
+
+	go listenAndServeTCP(*tcpPort)
+	listenAndServeHTTP(*httpPort)
 }
 
 // ----------------------------------------------------------------- TCP Server
 
-func listenAndServeTCP() {
-	l, err := net.Listen("tcp", ":1337")
+func listenAndServeTCP(port int) {
+	log.Println("Starting TCP listener on", port)
+
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		log.Panicln(err)
 	}
-	log.Println("Listening for TCP connections")
 	defer l.Close()
 
 	for {
@@ -45,28 +56,27 @@ func listenAndServeTCP() {
 }
 
 func handleTCPRequest(conn net.Conn) {
-	log.Println("Accepted new TCP connection.")
+	log.Println("TCP: Accepted new connection")
 	defer conn.Close()
-	defer log.Println("Closed TCP connection.")
+	defer log.Println("TCP: Closing connection")
 
 	for {
 		var size uint64
 		err := binary.Read(conn, binary.BigEndian, &size)
 		if err != nil {
-			log.Println("read size:", err)
+			log.Println("TCP:", conn, ":", "read size:", err)
 			break
 		}
-
-		log.Println("required length:", size)
 
 		msg := make([]byte, size)
 		_, err = io.ReadFull(conn, msg)
 		if err != nil {
-			log.Println("read msg:", err)
+			log.Println("TCP:", conn, ":", "read message:", err)
 			break
 		}
 
-		log.Println("Message:", string(msg))
+		log.Println("TCP:", conn, ":", "successfully read message")
+
 		broadcaster.Submit(msg)
 	}
 }
@@ -78,32 +88,39 @@ var upgrader = websocket.Upgrader{}
 func status(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade:", err)
+		log.Println("WS: upgrade:", err)
 		return
 	}
+
+	log.Println("WS: Accepted new connection")
 	defer c.Close()
+	defer log.Println("WS: Closing connection")
 
 	ch := make(chan interface{})
 	broadcaster.Register(ch)
 	defer broadcaster.Unregister(ch)
 
 	for msg := range ch {
+
 		m, ok := msg.([]byte)
 		if !ok {
-			log.Println("invalid type")
+			log.Println("WS: Invalid type for message")
 			continue
 		}
 
-		// log.Println("sending:", m)
-		c.WriteMessage(websocket.TextMessage, m)
+		if c.WriteMessage(websocket.TextMessage, m) != nil {
+			break
+		}
 	}
 }
 
-func listenAndServeHTTP() {
+func listenAndServeHTTP(port int) {
+	log.Println("Starting HTTP listener on", port)
+
 	http.HandleFunc("/status", status)
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	http.ListenAndServe("localhost:"+strconv.Itoa(port), nil)
 }
 
 // ---------------------------------------------------------- Message Generator
@@ -121,6 +138,8 @@ type loadStatus struct {
 }
 
 func messageGenerator() {
+	log.Println("Starting Random Message Generator")
+
 	for {
 		msg := message{
 			"LoadStatus",
@@ -132,7 +151,7 @@ func messageGenerator() {
 
 		data, err := json.Marshal(msg)
 		if err != nil {
-			log.Println("Couldn't marshal random message")
+			log.Println("RMG: Could not marshal message:", err)
 			break
 		}
 
