@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/dustin/go-broadcast"
 	"github.com/gorilla/websocket"
@@ -16,6 +19,7 @@ var broadcaster = broadcast.NewBroadcaster(100)
 // ----------------------------------------------------------------------- Main
 
 func main() {
+	go messageGenerator()
 	go listenAndServeTCP()
 	listenAndServeHTTP()
 }
@@ -90,7 +94,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		log.Println("sending:", m)
+		// log.Println("sending:", m)
 		c.WriteMessage(websocket.TextMessage, m)
 	}
 }
@@ -100,4 +104,40 @@ func listenAndServeHTTP() {
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+}
+
+// ---------------------------------------------------------- Message Generator
+
+const numNodes = 5
+
+type message struct {
+	Type    string
+	Payload interface{}
+}
+
+type loadStatus struct {
+	Node int64
+	Load int64
+}
+
+func messageGenerator() {
+	for {
+		msg := message{
+			"LoadStatus",
+			loadStatus{
+				int64(rand.Intn(numNodes) + 1),
+				int64(rand.Intn(101)),
+			},
+		}
+
+		data, err := json.Marshal(msg)
+		if err != nil {
+			log.Println("Couldn't marshal random message")
+			break
+		}
+
+		broadcaster.Submit(data)
+
+		time.Sleep(1 * time.Second)
+	}
 }
