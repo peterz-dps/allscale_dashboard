@@ -18,7 +18,7 @@
         if (ws) {
           return false;
         }
-        ws = new WebSocket("ws://localhost:8080/echo");
+        ws = new WebSocket("ws://localhost:8080/status");
         ws.onopen = function (evt) {
           print("OPEN");
         }

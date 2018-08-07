@@ -1,18 +1,19 @@
 package main
 
 import (
-	"flag"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "localhost:8080", "HTTP service address")
+// ----------------------------------------------------------------- Web Server
 
 var upgrader = websocket.Upgrader{}
 
-func echo(w http.ResponseWriter, r *http.Request) {
+func status(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrade:", err)
@@ -21,30 +22,40 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 
 	for {
-		mt, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
+		c.WriteJSON(randMessage())
+		time.Sleep(1 * time.Second)
 	}
 }
 
 func main() {
-	flag.Parse()
-	log.SetFlags(0)
-
-	http.HandleFunc("/echo", echo)
+	http.HandleFunc("/status", status)
 
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
 
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+}
+
+// ---------------------------------------------------------- Message Generator
+
+const numNodes = 5
+
+type message struct {
+	Type    string
+	Payload interface{}
+}
+
+type loadStatus struct {
+	Node int64
+	Load int64
+}
+
+func randMessage() message {
+	return message{
+		"LoadStatus",
+		loadStatus{
+			int64(rand.Intn(numNodes) + 1),
+			int64(rand.Intn(101)),
+		},
+	}
 }
