@@ -2,34 +2,98 @@
 <html>
 
 <head>
+  <title>AllScale Dashboard</title>
   <meta charset="utf-8">
+  <link href="css/c3.css" rel="stylesheet">
 </head>
 
 <body>
-  <div id="output"></div>
+  <div id="network" style="height: 150px"></div>
+  <div id="prod"></div>
 
+  <script src="js/d3.js"></script>
+  <script src="js/c3.js"></script>
   <script>
+    var network = c3.generate({
+      bindto: '#network',
+      axis: {
+        y: {
+          padding: 0,
+          max: 100000,
+          min: -100000,
+          tick: {
+            values: [-100000, -50000, 0, 50000, 100000],
+            format: function (d) {
+              return `${(d / 1000).toFixed(2)} mbit/s`;
+            }
+          }
+        }
+      },
+      grid: {
+        x: { show: true },
+        y: { show: true },
+      },
+      data: {
+        type: 'area',
+        names: {
+          network_in: "Network In",
+          network_out: "Network Out",
+        },
+        colors: {
+          // network_in: "#00aa00",
+          // network_out: "#aa0000",
+        },
+        columns: [
+          ["network_in"].concat(Array(30).fill(0)),
+          ["network_out"].concat(Array(30).fill(0)),
+        ]
+      }
+    });
+
+    var prod = c3.generate({
+      bindto: '#prod',
+      data: {
+        type: 'gauge',
+        columns: [
+          ['Productivity', 0]
+        ],
+      },
+    })
+
+    function shiftPush(array, element, limit = 10) {
+      if (array.length >= limit) array.shift();
+      array.push(element);
+      return array;
+    }
+
+    function processData(evt) {
+      data = JSON.parse(evt.data);
+      console.log(data);
+
+      network.flow({
+        columns: [
+          ["network_in", data["nodes"][0]["network_in"]],
+          ["network_out", -data["nodes"][0]["network_out"]],
+        ],
+        length: 1,
+        duration: 50,
+      });
+
+      let p = (1 - data["nodes"][0]["idle_rate"]) * 100;
+      prod.load({ columns: [ ['Productivity', p.toFixed(1)] ] });
+    }
+
     window.addEventListener("load", function (evt) {
-      var output = document.getElementById("output");
-
-      var print = function (message) {
-        var d = document.createElement("div");
-        d.innerHTML = message;
-        output.appendChild(d);
-      };
-
-      var ws = new WebSocket("ws://localhost:8080/status");
+      var ws = new WebSocket(`ws://${window.location.host}/status`);
+      ws.onmessage = processData;
       ws.onopen = function (evt) {
-        console.log("Status Open");
+        console.info(" Open");
       };
       ws.onclose = function (evt) {
-        console.log("Status Closed");
-      };
-      ws.onmessage = function (evt) {
-        print(evt.data);
+        console.info("Status Closed");
       };
       ws.onerror = function (evt) {
-        print("ERROR: " + evt.data);
+        console.error(evt.data);
       };
     });
   </script>
