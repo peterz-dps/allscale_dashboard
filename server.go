@@ -125,28 +125,63 @@ func listenAndServeHTTP(port int) {
 
 // ---------------------------------------------------------- Message Generator
 
-const numNodes = 5
+const (
+	numNodes          = 3
+	memLimit          = 100000
+	maxTaskThroughput = 100
+	networkLimit      = 100000
+)
 
-type message struct {
-	Type    string
-	Payload interface{}
+var timeStep int64 = 1
+
+type statusUpdate struct {
+	Time  int64              `json:"time"`
+	Nodes []nodeStatusUpdate `json:"nodes"`
 }
 
-type loadStatus struct {
-	Node int64
-	Load int64
+type nodeStatusUpdate struct {
+	ID                    int64   `json:"id"`
+	State                 string  `json:"state"`
+	CPULoad               float64 `json:"cpu_load"`
+	MemLoad               int64   `json:"mem_load"`
+	TaskThroughput        int64   `json:"task_throughput"`
+	WeightedTaskThrougput float64 `json:"weighted_task_througput"`
+	NetworkIn             int64   `json:"network_in"`
+	NetworkOut            int64   `json:"network_out"`
+	IdleRate              float64 `json:"idle_rate"`
+}
+
+func randNodeStatusUpdate(id int64) nodeStatusUpdate {
+	state := "online"
+	if id == 3 || id == 7 {
+		state = "offline"
+	}
+
+	return nodeStatusUpdate{
+		ID:                    id,
+		State:                 state,
+		CPULoad:               rand.Float64() * 100.0,
+		MemLoad:               int64(rand.Intn(memLimit)),
+		TaskThroughput:        int64(rand.Intn(maxTaskThroughput)),
+		WeightedTaskThrougput: rand.Float64() * 10,
+		NetworkIn:             int64(rand.Intn(networkLimit)),
+		NetworkOut:            int64(rand.Intn(networkLimit)),
+		IdleRate:              rand.Float64(),
+	}
 }
 
 func messageGenerator() {
 	log.Println("Starting Random Message Generator")
 
 	for {
-		msg := message{
-			"LoadStatus",
-			loadStatus{
-				int64(rand.Intn(numNodes) + 1),
-				int64(rand.Intn(101)),
-			},
+		var nodes []nodeStatusUpdate
+		for id := int64(0); id < numNodes; id++ {
+			nodes = append(nodes, randNodeStatusUpdate(id))
+		}
+
+		msg := statusUpdate{
+			Time:  timeStep,
+			Nodes: nodes,
 		}
 
 		data, err := json.Marshal(msg)
@@ -156,6 +191,8 @@ func messageGenerator() {
 		}
 
 		broadcaster.Submit(data)
+
+		timeStep++
 
 		time.Sleep(1 * time.Second)
 	}
