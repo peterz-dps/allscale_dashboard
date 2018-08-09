@@ -28,4 +28,6 @@ A random message generator is provided and can be activated with `-msg-gen`.
 All messages sent to the status message sink must be length prefixed and will be forwarded to all websocket instances.
 See [`send_test_message.py`](scripts/send_test_message.py) for a very basic example.
 
+The rough specification for status update can be found in [`runtime_state_dump_example.json`](docs/runtime_state_dump_example.json).
+
 The random message generator can be used simultaneously.
