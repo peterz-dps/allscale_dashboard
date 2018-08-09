@@ -153,14 +153,9 @@ type nodeStatusUpdate struct {
 }
 
 func randNodeStatusUpdate(id int64) nodeStatusUpdate {
-	state := "online"
-	if id == 3 || id == 7 {
-		state = "offline"
-	}
-
 	return nodeStatusUpdate{
 		ID:                    id,
-		State:                 state,
+		State:                 "online",
 		CPULoad:               rand.Float64(),
 		MemLoad:               int64(rand.Intn(memLimit)),
 		TaskThroughput:        int64(rand.Intn(maxTaskThroughput)),
@@ -178,6 +173,11 @@ func messageGenerator() {
 		var nodes []nodeStatusUpdate
 		for id := int64(0); id < numNodes; id++ {
 			nodes = append(nodes, randNodeStatusUpdate(id))
+		}
+
+		if timeStep % 20 > 10 {
+			nodes[7].State = "offline"
+			nodes[11].State = "offline"
 		}
 
 		msg := statusUpdate{
