@@ -126,7 +126,8 @@ func listenAndServeHTTP(port int) {
 // ---------------------------------------------------------- Message Generator
 
 const (
-	numNodes          = 3
+	updateInterval    = 1500 * time.Millisecond
+	numNodes          = 16
 	memLimit          = 100000
 	maxTaskThroughput = 100
 	networkLimit      = 100000
@@ -160,7 +161,7 @@ func randNodeStatusUpdate(id int64) nodeStatusUpdate {
 	return nodeStatusUpdate{
 		ID:                    id,
 		State:                 state,
-		CPULoad:               rand.Float64() * 100.0,
+		CPULoad:               rand.Float64(),
 		MemLoad:               int64(rand.Intn(memLimit)),
 		TaskThroughput:        int64(rand.Intn(maxTaskThroughput)),
 		WeightedTaskThrougput: rand.Float64() * 10,
@@ -194,6 +195,6 @@ func messageGenerator() {
 
 		timeStep++
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(updateInterval)
 	}
 }
