@@ -2,6 +2,7 @@ const numNodes = 16;
 
 var timeStep = 0;
 var widgets = {};
+var refresher;
 var dataStore = Array(numNodes).fill();
 
 function mkNodeWidgetContainer(id) {
@@ -167,27 +168,37 @@ function initProWidget(id) {
   });
 }
 
-function updateWidgets(nodeData) {
+function updateDataStore(nodeData) {
   let id = nodeData.id;
 
   $(`#node${id} .node-state`).text(nodeData.state);
   if (nodeData.state != "online") {
     $(`#node${id}`).addClass('node-offline');
 
+    dataStore[id].online = false;
     dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: 0 });
     dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: 0 });
     dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: 0 });
     dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: 0 });
+    dataStore[id].raw = undefined;
 
     return;
   } else {
     $(`#node${id}`).removeClass('node-offline');
 
+    dataStore[id].online = true;
     dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
     dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
     dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
     dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: nodeData.network_out });
+    dataStore[id].raw = nodeData;
   }
+}
+
+function updateWidget(id) {
+  let nodeData = dataStore[id].raw;
+
+  if (!dataStore[id].online) return;
 
   widgets[id].cpu.render();
   widgets[id].mem.render();
@@ -201,6 +212,12 @@ function updateWidgets(nodeData) {
   );
 }
 
+function updateWidgets() {
+  for (let id = 0; id < numNodes; id++) {
+    updateWidget(id);
+  }
+}
+
 function processMessage(evt) {
   data = JSON.parse(evt.data);
   // console.log(data);
@@ -208,8 +225,12 @@ function processMessage(evt) {
   if (timeStep >= data.time) return;
   timeStep = data.time;
 
-  for (let i = 0; i < numNodes; i++) {
-    updateWidgets(data.nodes[i]);
+  for (let i = 0; i < data.nodes.length; i++) {
+    updateDataStore(data.nodes[i]);
+  }
+
+  if (!refresher) {
+    setRefreshInterval(500);
   }
 }
 
@@ -219,4 +240,11 @@ function shiftPush(array, element, limit = 10) {
   if (array.length >= limit) array.shift();
   array.push(element);
   return array;
+}
+
+function setRefreshInterval(ms) {
+  if (refresher) {
+    clearInterval(refresher);
+  }
+  refresher = setInterval(updateWidgets, ms);
 }
