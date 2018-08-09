@@ -126,7 +126,7 @@ func listenAndServeHTTP(port int) {
 // ---------------------------------------------------------- Message Generator
 
 const (
-	updateInterval    = 500 * time.Millisecond
+	updateInterval    = 400 * time.Millisecond
 	numNodes          = 16
 	memLimit          = 100000
 	maxTaskThroughput = 100
@@ -141,15 +141,16 @@ type statusUpdate struct {
 }
 
 type nodeStatusUpdate struct {
-	ID                    int64   `json:"id"`
-	State                 string  `json:"state"`
-	CPULoad               float64 `json:"cpu_load"`
-	MemLoad               int64   `json:"mem_load"`
-	TaskThroughput        int64   `json:"task_throughput"`
-	WeightedTaskThrougput float64 `json:"weighted_task_througput"`
-	NetworkIn             int64   `json:"network_in"`
-	NetworkOut            int64   `json:"network_out"`
-	IdleRate              float64 `json:"idle_rate"`
+	ID                    int64         `json:"id"`
+	State                 string        `json:"state"`
+	CPULoad               float64       `json:"cpu_load"`
+	MemLoad               int64         `json:"mem_load"`
+	TaskThroughput        int64         `json:"task_throughput"`
+	WeightedTaskThrougput float64       `json:"weighted_task_througput"`
+	NetworkIn             int64         `json:"network_in"`
+	NetworkOut            int64         `json:"network_out"`
+	IdleRate              float64       `json:"idle_rate"`
+	OwnedData             []interface{} `json:"owned_data"`
 }
 
 func randNodeStatusUpdate(id int64) nodeStatusUpdate {
@@ -163,6 +164,7 @@ func randNodeStatusUpdate(id int64) nodeStatusUpdate {
 		NetworkIn:             int64(rand.Intn(networkLimit)),
 		NetworkOut:            int64(rand.Intn(networkLimit)),
 		IdleRate:              rand.Float64(),
+		OwnedData:             make([]interface{}, 0),
 	}
 }
 
@@ -175,7 +177,7 @@ func messageGenerator() {
 			nodes = append(nodes, randNodeStatusUpdate(id))
 		}
 
-		if timeStep % 20 > 10 {
+		if timeStep%20 > 10 {
 			nodes[7].State = "offline"
 			nodes[11].State = "offline"
 		}

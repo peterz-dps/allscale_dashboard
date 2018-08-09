@@ -11,7 +11,7 @@ function mkNodeWidgetContainer(id) {
     .append(
       $('<div>').addClass('node-info').append(
         $('<div>').addClass('node-title').text(`Node ${id}`),
-        $('<div>').addClass('node-state').text('online'),
+        $('<div>').addClass('node-state').text('offline'),
       ),
       $('<div>').addClass(`node-cpu`).append(
         $('<div>').addClass('node-chart-title').text('CPU'),
@@ -31,7 +31,8 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
-      $('<div>').addClass('node-pro')
+      $('<div>').addClass('node-pro'),
+      $('<div>').addClass('node-details'),
     );
 }
 
@@ -158,7 +159,7 @@ function initProWidget(id) {
     max: 100,
     title: "Productivity",
     startAnimationTime: 0,
-    refreshAnimationTime: 200,
+    refreshAnimationTime: 0,
   });
 }
 
@@ -189,6 +190,12 @@ function updateWidgets(nodeData) {
 
   // Productivity
   widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
+
+  // Details
+  $(`#node${id} .node-details`).empty().append(
+    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
+    $('<p>').html(`Owned Data<br># ${nodeData.owned_data.length}`),
+  );
 }
 
 function processMessage(evt) {
