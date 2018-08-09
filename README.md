@@ -1,4 +1,4 @@
-# AllScale Dashboard
+![Screenshot](docs/images/screenshot.png)
 
 ## Setup
 
@@ -29,7 +29,3 @@ All messages sent to the status message sink must be length prefixed and will be
 See [`send_test_message.py`](scripts/send_test_message.py) for a very basic example.
 
 The random message generator can be used simultaneously.
-
-## Screenshot
-
-![Screenshot](docs/images/screenshot.png)
