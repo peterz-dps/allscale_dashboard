@@ -63,6 +63,7 @@ function initCpuWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-cpu .node-time-chart`),
     max: 100,
+    interpolation: 'linear',
     series: [
       {
         color: 'steelblue',
@@ -90,6 +91,7 @@ function initCpuWidget(id) {
 function initMemWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-mem .node-time-chart`),
+    interpolation: 'linear',
     series: [
       {
         color: 'darkorange',
@@ -119,6 +121,7 @@ function initNetWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-net .node-time-chart`),
     render: 'area',
+    interpolation: 'linear',
     stroke: true,
     series: [
       {
@@ -170,29 +173,28 @@ function updateWidgets(nodeData) {
   $(`#node${id} .node-state`).text(nodeData.state);
   if (nodeData.state != "online") {
     $(`#node${id}`).addClass('node-offline');
+
+    dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: 0 });
+    dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: 0 });
+    dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: 0 });
+    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: 0 });
+
     return;
   } else {
     $(`#node${id}`).removeClass('node-offline');
+
+    dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
+    dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
+    dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
+    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: nodeData.network_out });
   }
 
-  // CPU
-  dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
   widgets[id].cpu.render();
-
-  // Memory
-  dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
   widgets[id].mem.render();
-
-  // Network
-  dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
-  dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: nodeData.network_out });
   widgets[id].net.renderer.unstack = true;
   widgets[id].net.render();
-
-  // Productivity
   widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
 
-  // Details
   $(`#node${id} .node-details`).empty().append(
     $('<p>').html(`Task Throughput<br>${nodeData.task_throughput} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
     $('<p>').html(`Owned Data<br># ${nodeData.owned_data.length}`),
