@@ -33,7 +33,7 @@ function mkNodeWidgetContainer(id) {
       ),
       $('<div>').addClass('node-pro'),
       $('<div>').addClass('node-details'),
-    );
+  );
 }
 
 function addNodes(count) {
@@ -158,6 +158,7 @@ function initProWidget(id) {
     min: 0,
     max: 100,
     title: "Productivity",
+    levelColors: ['#e54b4b', '#faed70', '#2ddafd'],
     startAnimationTime: 0,
     refreshAnimationTime: 0,
   });
