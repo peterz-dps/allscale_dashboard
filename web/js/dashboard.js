@@ -19,6 +19,12 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
+      $('<div>').addClass(`node-mem`).append(
+        $('<div>').addClass('node-chart-title').text('Memory'),
+        $('<div>').addClass('node-x-axis'),
+        $('<div>').addClass('node-y-axis'),
+        $('<div>').addClass('node-time-chart')
+      ),
       $('<div>').addClass('node-net').append(
         $('<div>').addClass('node-chart-title').text('Network'),
         $('<div>').addClass('node-x-axis'),
@@ -39,12 +45,14 @@ function addNodes(count) {
 function initNodeWidgets(id) {
   dataStore[id] = {
     cpu: [],
+    memory: [],
     network_in: [],
     network_out: [],
   }
 
   return {
     'cpu': initCpuWidget(id),
+    'mem': initMemWidget(id),
     'net': initNetWidget(id),
     'pro': initProWidget(id),
   }
@@ -73,6 +81,34 @@ function initCpuWidget(id) {
     orientation: 'left',
     pixelsPerTick: 30,
     element: document.querySelector(`#node${id} .node-cpu .node-y-axis`),
+  });
+
+  return graph;
+}
+
+function initMemWidget(id) {
+  let graph = new Rickshaw.Graph({
+    element: document.querySelector(`#node${id} .node-mem .node-time-chart`),
+    series: [
+      {
+        color: 'darkorange',
+        data: dataStore[id].memory,
+      }
+    ]
+  });
+
+  new Rickshaw.Graph.Axis.X({
+    graph: graph,
+    orientation: 'bottom',
+    pixelsPerTick: 60,
+    element: document.querySelector(`#node${id} .node-mem .node-x-axis`),
+  });
+  new Rickshaw.Graph.Axis.Y({
+    graph: graph,
+    orientation: 'left',
+    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    pixelsPerTick: 30,
+    element: document.querySelector(`#node${id} .node-mem .node-y-axis`),
   });
 
   return graph;
@@ -130,10 +166,20 @@ function updateWidgets(nodeData) {
   let id = nodeData.id;
 
   $(`#node${id} .node-state`).text(nodeData.state);
+  if (nodeData.state != "online") {
+    $(`#node${id}`).addClass('node-offline');
+    return;
+  } else {
+    $(`#node${id}`).removeClass('node-offline');
+  }
 
   // CPU
   dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
   widgets[id].cpu.render();
+
+  // Memory
+  dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
+  widgets[id].mem.render();
 
   // Network
   dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
