@@ -14,11 +14,13 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-state').text('online'),
       ),
       $('<div>').addClass(`node-cpu`).append(
+        $('<div>').addClass('node-chart-title').text('CPU'),
         $('<div>').addClass('node-x-axis'),
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
       $('<div>').addClass('node-net').append(
+        $('<div>').addClass('node-chart-title').text('Network'),
         $('<div>').addClass('node-x-axis'),
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
@@ -44,7 +46,7 @@ function initNodeWidgets(id) {
   return {
     'cpu': initCpuWidget(id),
     'net': initNetWidget(id),
-    //   'pro': initProWidget(id),
+    'pro': initProWidget(id),
   }
 }
 
@@ -113,7 +115,15 @@ function initNetWidget(id) {
 }
 
 function initProWidget(id) {
-  // TODO
+  return new JustGage({
+    parentNode: document.querySelector(`#node${id} .node-pro`),
+    value: 0,
+    min: 0,
+    max: 100,
+    title: "Productivity",
+    startAnimationTime: 0,
+    refreshAnimationTime: 200,
+  });
 }
 
 function updateWidgets(nodeData) {
@@ -131,7 +141,8 @@ function updateWidgets(nodeData) {
   widgets[id].net.renderer.unstack = true;
   widgets[id].net.render();
 
-  // TODO Productivity
+  // Productivity
+  widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
 }
 
 function processMessage(evt) {

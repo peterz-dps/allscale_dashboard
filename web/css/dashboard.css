@@ -3,7 +3,7 @@
   width: 1000px;
   height: 100px;
   margin: 10px;
-  border: solid thin gray;
+  border: dashed thin lightgray;
 }
 
 .node .node-info,
@@ -27,6 +27,17 @@
   width: 200px;
 }
 
+.node .node-chart-title {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+  right: 0px;
+  font-size: 10px;
+  font-family: sans-serif;
+  text-align: center;
+  color: rgb(153, 153, 153);
+}
+
 .node .node-x-axis {
   position: absolute;
   left: 40px;
@@ -37,14 +48,14 @@
 
 .node .node-y-axis {
   position: absolute;
-  top: 5px;
+  top: 15px;
   bottom: 0px;
   width: 40px;
 }
 
 .node .node-time-chart {
   position: absolute;
-  top: 5px;
+  top: 15px;
   left: 40px;
   right: 0px;
   bottom: 10px;
