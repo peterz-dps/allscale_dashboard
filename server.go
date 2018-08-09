@@ -126,7 +126,7 @@ func listenAndServeHTTP(port int) {
 // ---------------------------------------------------------- Message Generator
 
 const (
-	updateInterval    = 1500 * time.Millisecond
+	updateInterval    = 500 * time.Millisecond
 	numNodes          = 16
 	memLimit          = 100000
 	maxTaskThroughput = 100

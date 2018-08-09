@@ -1,0 +1,51 @@
+.node {
+  display: inline-block;
+  width: 1000px;
+  height: 100px;
+  margin: 10px;
+  border: solid thin gray;
+}
+
+.node .node-info,
+.node .node-cpu,
+.node .node-net,
+.node .node-pro {
+  display: inline-block;
+  position: relative;
+  height: 90px;
+}
+
+.node .node-cpu {
+  width: 200px;
+}
+
+.node .node-net {
+  width: 200px;
+}
+
+.node .node-pro {
+  width: 200px;
+}
+
+.node .node-x-axis {
+  position: absolute;
+  left: 40px;
+  right: 0px;
+  bottom: -10px;
+  height: 20px;
+}
+
+.node .node-y-axis {
+  position: absolute;
+  top: 5px;
+  bottom: 0px;
+  width: 40px;
+}
+
+.node .node-time-chart {
+  position: absolute;
+  top: 5px;
+  left: 40px;
+  right: 0px;
+  bottom: 10px;
+}
