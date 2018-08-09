@@ -31,3 +31,8 @@ See [`send_test_message.py`](scripts/send_test_message.py) for a very basic exam
 The rough specification for status update can be found in [`runtime_state_dump_example.json`](docs/runtime_state_dump_example.json).
 
 The random message generator can be used simultaneously.
+
+## Performance
+
+Having that many charts rendering in the browser can be quite performence intensive (*yeay Javascript*).
+When having the dashboard open, open the browser console and use `setRefreshInterval(ms)` to adjust the update rate.
