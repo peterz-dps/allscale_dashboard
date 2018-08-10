@@ -9,19 +9,25 @@ var numNodes = 0;
 // the size of the grid
 var gridSize = new THREE.Vector3();
 
+// the current state
+var runtimeState;
+
 // list of boxes to be drawn
 var boxes = [];
 
-// a function processing update state information
-function updateMetaData(state, id) {
+// the currently selected data item
+var currentDataItem = 1;
 
-  // get number of nodes
-  numNodes = state.length;
+// updates the list of boxes to be drawn to represent the selected item
+function selectDataItem( id ) {
+
+  // update current data item selection
+  currentDataItem = id;
 
   // get the grid size and create list of boxes
   boxes = [];
   gridSize = new THREE.Vector3();
-  state.forEach(function (node) {
+  runtimeState.forEach(function (node) {
     node.owned_data.forEach(function (data_item) {
       if (data_item.id != id) return;
       data_item.region.forEach(function (box) {
@@ -48,8 +54,52 @@ function updateMetaData(state, id) {
 
 }
 
-// process meta-data state
-updateMetaData(data_distribution_state[3], 1);
+// a function processing update state information
+function updateDataModel(state) {
+
+  // update state
+  runtimeState = state;
+
+  // get number of nodes
+  numNodes = state.length;
+
+  // update boxes to be drawn
+  selectDataItem(currentDataItem);
+
+  // update selection box options
+  var selector = document.getElementById("data-item-selection");
+  var oldVal = selector.value;
+
+  // remove old options
+  var numOptions = selector.length;
+  for (var i=0; i < numOptions; i++) {
+    selector.remove(0);
+  }
+
+  // collect new data item ids
+  var dataItems = new Set();
+  runtimeState.forEach(function (node) {
+    node.owned_data.forEach(function (data_item) {
+      dataItems.add(data_item.id);
+    });
+  });
+  dataItems = Array.from(dataItems.entries()).map(p => p[0]);
+  dataItems.sort((a,b)=>a-b);
+
+  dataItems.forEach(function(id){
+    var option = document.createElement("option");
+    option.text = `Data Item DI-${id}`;
+    option.value = id;
+    selector.add(option);
+  });
+
+  selector.value = oldVal;
+
+  console.log("Number of children: " + selector.children.length);
+}
+
+// process meta-data state (initially empty)
+updateDataModel([]);
 
 
 // ------------------------------------------------------------------------
@@ -64,31 +114,25 @@ var controls;
 init();
 animate();
 
-function createBox(size, pos) {
-
-  // create the box geometry
-  var geometry = new THREE.BoxBufferGeometry();
-  var position = pos.clone();
-  var rotation = new THREE.Euler();
-  var scale = size.clone();
-  var quaternion = new THREE.Quaternion();
-  quaternion.setFromEuler(rotation, false);
-  var matrix = new THREE.Matrix4();
-  matrix.compose(position, quaternion, scale);
-  geometry.applyMatrix(matrix);
-  return geometry;
-}
-
 function buildScene() {
 
-  // save old rotation
-  var rot = scene.rotation.y;
+  function createBox(size, pos) {
+
+    // create the box geometry
+    var geometry = new THREE.BoxBufferGeometry();
+    var position = pos.clone();
+    var rotation = new THREE.Euler();
+    var scale = size.clone();
+    var quaternion = new THREE.Quaternion();
+    quaternion.setFromEuler(rotation, false);
+    var matrix = new THREE.Matrix4();
+    matrix.compose(position, quaternion, scale);
+    geometry.applyMatrix(matrix);
+    return geometry;
+  }
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-
-  // restore rotation
-  scene.rotation.y = rot;
 
   var N = gridSize;
 
@@ -152,68 +196,56 @@ function init() {
   camera.up.set(0, 1, 0);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  // setup the interactive controls support
-  controls = new THREE.TrackballControls(camera);
-  controls.rotateSpeed = 1.0;
-  controls.zoomSpeed = 1.2;
-  controls.panSpeed = 0.8;
-  controls.noZoom = false;
-  controls.noPan = true;
-  controls.staticMoving = true;
-  controls.dynamicDampingFactor = 0.3;
-
   scene = new THREE.Scene();
   buildScene();
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(width, height);
   dataviz.appendChild(renderer.domElement);
+
+  // setup the interactive controls support
+  controls = new THREE.OrbitControls( camera, renderer.domElement );
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.25;
+  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  controls.dampingFactor = 0.25;
+  controls.screenSpacePanning = false;
+  controls.maxPolarAngle = Math.PI / 2;
+  controls.enablePan = false;
 }
-//
-function onMouseMove(e) {
-  /*
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  */
-}
+
 function animate() {
   requestAnimationFrame(animate);
 
-  scene.rotation.y += 0.005;
+  // support control dynamics (auto rotation)
+  controls.update();
 
+  // refresh the scene
   render();
-  // stats.update();
 }
-function pick() {
-  /*
-  //render the picking scene off-screen
-  renderer.render( pickingScene, camera, pickingTexture );
-  //create buffer for reading single pixel
-  var pixelBuffer = new Uint8Array( 4 );
-  //read the pixel under the mouse from the texture
-  renderer.readRenderTargetPixels( pickingTexture, mouse.x, pickingTexture.height - mouse.y, 1, 1, pixelBuffer );
-  //interpret the pixel as an ID
-  var id = ( pixelBuffer[ 0 ] << 16 ) | ( pixelBuffer[ 1 ] << 8 ) | ( pixelBuffer[ 2 ] );
-  var data = pickingData[ id ];
-  if ( data) {
-    //move our highlightBox so that it surrounds the picked object
-    if ( data.position && data.rotation && data.scale ){
-      highlightBox.position.copy( data.position );
-      highlightBox.rotation.copy( data.rotation );
-      highlightBox.scale.copy( data.scale ).add( offset );
-      highlightBox.visible = true;
-    }
-  } else {
-    highlightBox.visible = false;
-  }
-  */
-}
+
 function render() {
   controls.update();
-  pick();
   renderer.render(scene, camera);
 }
 
+
+// ------------------------------------------------------------------------
+//                       Event Handling
+// ------------------------------------------------------------------------
+
+function dataItemSelectionChanged() {
+  // switch to new data item
+  selectDataItem(document.getElementById("data-item-selection").value);
+}
+
+function processMessage( evt ) {
+  data = JSON.parse(evt.data);
+  updateDataModel(data.nodes);
+  buildScene();
+}
+
+// --- manual interaction ---
 
 function switchTo(file, id) {
 
@@ -223,16 +255,8 @@ function switchTo(file, id) {
   }
 
   // update the data model
-  updateMetaData(data_distribution_state[file], id);
+  updateDataModel(data_distribution_state[file], id);
 
   // re-build the scene
-  buildScene();
-}
-
-function processMessage( evt ) {
-  data = JSON.parse(evt.data);
-  // console.log(data);
-  // TODO: move this into one
-  updateMetaData(data.nodes,1);
   buildScene();
 }

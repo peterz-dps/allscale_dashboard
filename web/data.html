@@ -16,12 +16,18 @@
       <img alt="AllScale Logo" src="images/allscale.png">
     </div>
     <div id="header-text">Data Distribution</div>
+    <select id="data-item-selection" onchange="dataItemSelectionChanged()">
+      <option value="1">Data Item 1</option>
+      <option value="2">Data Item 2</option>
+      <option value="3">Data Item 3</option>
+      <option value="4">Data Item 4</option>
+    </select>
   </div>
 
   <div id="dataviz"></div>
 
   <script src="js/three.min.js"></script>
-  <script src="js/controls/TrackballControls.js"></script>
+  <script src="js/controls/OrbitControls.js"></script>
 
   <script>
     var data_distribution_state = [];
