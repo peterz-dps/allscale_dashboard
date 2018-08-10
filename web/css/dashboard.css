@@ -68,11 +68,6 @@ p {
   width: 120px;
 }
 
-.node .node-state {
-  font-size: 14px;
-  color: gray;
-}
-
 .node .node-title {
   position: absolute;
   top: 15px;
@@ -85,6 +80,9 @@ p {
   position: absolute;
   top: 50px;
   left: 20px;
+  font-family: Orbitron;
+  font-size: 14px;
+  color: gray;
 }
 
 .node .node-cpu,
