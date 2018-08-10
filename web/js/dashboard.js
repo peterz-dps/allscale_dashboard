@@ -27,7 +27,12 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-time-chart')
       ),
       $('<div>').addClass('node-net').append(
-        $('<div>').addClass('node-chart-title').text('Network'),
+        $('<div>').addClass('node-chart-title').append(
+          'Network &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+          $('<span>').attr('style', 'color: #70ad47').text('In'),
+          ' / ',
+          $('<span>').attr('style', 'color: #c0504d').text('Out')
+        ),
         $('<div>').addClass('node-x-axis'),
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
@@ -65,9 +70,11 @@ function initCpuWidget(id) {
     element: document.querySelector(`#node${id} .node-cpu .node-time-chart`),
     max: 100,
     interpolation: 'linear',
+    stroke: true,
     series: [
       {
-        color: 'steelblue',
+        color: '#5b9bd5',
+        stroke: '#41719c',
         data: dataStore[id].cpu,
       }
     ]
@@ -93,9 +100,11 @@ function initMemWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-mem .node-time-chart`),
     interpolation: 'linear',
+    stroke: true,
     series: [
       {
-        color: 'darkorange',
+        color: '#ed7d31',
+        stroke: '#ae5a21',
         data: dataStore[id].memory,
       }
     ]
@@ -126,13 +135,13 @@ function initNetWidget(id) {
     stroke: true,
     series: [
       {
-        stroke: 'steelblue',
-        color: 'rgba(192, 132, 255, 0.3)',
+        color: '#70ad477f',
+        stroke: '#507e32',
         data: dataStore[id].network_in,
       },
       {
-        stroke: 'orange',
-        color: 'rgba(96, 170, 255, 0.5)',
+        color: '#c0504d7f',
+        stroke: '#8c3836',
         data: dataStore[id].network_out,
       },
     ],
