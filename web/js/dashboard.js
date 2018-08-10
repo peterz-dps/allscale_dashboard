@@ -119,7 +119,7 @@ function initMemWidget(id) {
   new Rickshaw.Graph.Axis.Y({
     graph: graph,
     orientation: 'left',
-    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    tickFormat: Rickshaw.Fixtures.Number.formatBase1024KMGTP,
     pixelsPerTick: 30,
     element: document.querySelector(`#node${id} .node-mem .node-y-axis`),
   });
