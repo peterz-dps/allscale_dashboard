@@ -143,8 +143,11 @@ function buildScene() {
 }
 
 function init() {
+  var dataviz = document.getElementById("dataviz");
+  var width = dataviz.offsetWidth;
+  var height = dataviz.offsetHeight;
 
-  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.01, 10);
+  camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 10);
   camera.position.set(2.0, 2.4, 3.0);
   camera.up.set(0, 1, 0);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -163,10 +166,8 @@ function init() {
   buildScene();
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  var dashboard = document.getElementById("dashboard");
-  dashboard.appendChild(renderer.domElement);
-
+  renderer.setSize(width, height);
+  dataviz.appendChild(renderer.domElement);
 }
 //
 function onMouseMove(e) {

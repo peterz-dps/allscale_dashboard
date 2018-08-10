@@ -144,3 +144,14 @@ p {
 .node .node-net .node-chart-title > span {
   font-weight: bold;
 }
+
+/* ------------------------------------------------------- Data Distribution */
+
+#dataviz {
+  position: absolute;
+  top: 5px;
+  left: 0px;
+  right: 0px;
+  bottom: 5px;
+  z-index: -1;
+}
