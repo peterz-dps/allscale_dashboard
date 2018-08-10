@@ -18,6 +18,8 @@ Both ports are configurable.
             port for the HTTP listener (default 8080)
       -msg-gen
             generate random messages
+      -msg-gen-interval int
+            message generator interval [ms] (default 1000)
       -tcp-port int
             port for the TCP listener (default 1337)
 

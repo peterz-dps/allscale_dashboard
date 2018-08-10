@@ -24,10 +24,12 @@ func main() {
 	tcpPort := flag.Int("tcp-port", 1337, "port for the TCP listener")
 	httpPort := flag.Int("http-port", 8080, "port for the HTTP listener")
 	msgGen := flag.Bool("msg-gen", false, "generate random messages")
+	msgGenIv := flag.Int("msg-gen-interval", 1000, "message generator interval [ms]")
 	flag.Parse()
 
 	if *msgGen {
-		go messageGenerator()
+		interval := time.Duration(*msgGenIv) * time.Millisecond
+		go messageGenerator(interval)
 	}
 
 	go listenAndServeTCP(*tcpPort)
@@ -126,7 +128,6 @@ func listenAndServeHTTP(port int) {
 // ---------------------------------------------------------- Message Generator
 
 const (
-	updateInterval    = 500 * time.Millisecond
 	numNodes          = 16
 	memLimit          = 100000
 	maxTaskThroughput = 100
@@ -168,7 +169,7 @@ func randNodeStatusUpdate(id int64) nodeStatusUpdate {
 	}
 }
 
-func messageGenerator() {
+func messageGenerator(updateInterval time.Duration) {
 	log.Println("Starting Random Message Generator")
 
 	for {
