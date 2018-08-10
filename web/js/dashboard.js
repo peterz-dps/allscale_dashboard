@@ -135,12 +135,12 @@ function initNetWidget(id) {
     stroke: true,
     series: [
       {
-        color: '#70ad477f',
+        color: '#70ad47aa',
         stroke: '#507e32',
         data: dataStore[id].network_in,
       },
       {
-        color: '#c0504d7f',
+        color: '#c0504daa',
         stroke: '#8c3836',
         data: dataStore[id].network_out,
       },
