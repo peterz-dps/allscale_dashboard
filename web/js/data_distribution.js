@@ -228,3 +228,11 @@ function switchTo(file, id) {
   // re-build the scene
   buildScene();
 }
+
+function processMessage( evt ) {
+  data = JSON.parse(evt.data);
+  // console.log(data);
+  // TODO: move this into one
+  updateMetaData(data.nodes,1);
+  buildScene();
+}

@@ -34,6 +34,24 @@
 
   <script src="js/data_distribution.js"></script>
 
+  <script>
+
+    window.addEventListener("load", function (evt) {
+      var ws = new WebSocket(`ws://${window.location.host}/status`);
+      ws.onmessage = processMessage;
+      ws.onopen = function (evt) {
+        console.info(" Open");
+      };
+      ws.onclose = function (evt) {
+        console.info("Status Closed");
+      };
+      ws.onerror = function (evt) {
+        console.error(evt.data);
+      };
+    });
+
+  </script>
+
 </body>
 
 </html>
