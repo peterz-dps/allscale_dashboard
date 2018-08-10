@@ -1,0 +1,10 @@
+blue          #5b9bd5
+blue stroke   #41719c
+orange        #ed7d31
+orange stroke #ae5a21
+yellow        #ffc000
+yellow stroke #bc8c00
+green         #70ad47
+green stroke  #507e32
+red           #c0504d
+red stroke    #8c3836
