@@ -161,6 +161,8 @@ function initNetWidget(id) {
     element: document.querySelector(`#node${id} .node-net .node-y-axis`),
   });
 
+  graph.renderer.unstack = true;
+
   return graph;
 }
 
@@ -211,7 +213,6 @@ function updateWidget(id) {
 
   widgets[id].cpu.render();
   widgets[id].mem.render();
-  widgets[id].net.renderer.unstack = true;
   widgets[id].net.render();
   widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
 
