@@ -131,16 +131,17 @@ function initNetWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-net .node-time-chart`),
     render: 'area',
+    min: 'auto',
     interpolation: 'linear',
     stroke: true,
     series: [
       {
-        color: '#70ad47aa',
+        color: '#70ad47',
         stroke: '#507e32',
         data: dataStore[id].network_in,
       },
       {
-        color: '#c0504daa',
+        color: '#c0504d',
         stroke: '#8c3836',
         data: dataStore[id].network_out,
       },
@@ -157,7 +158,7 @@ function initNetWidget(id) {
     graph: graph,
     orientation: 'left',
     tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-    pixelsPerTick: 30,
+    pixelsPerTick: 16,
     element: document.querySelector(`#node${id} .node-net .node-y-axis`),
   });
 
@@ -201,7 +202,7 @@ function updateDataStore(nodeData) {
     dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
     dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
     dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
-    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: nodeData.network_out });
+    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: -nodeData.network_out });
     dataStore[id].raw = nodeData;
   }
 }
