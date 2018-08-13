@@ -212,6 +212,8 @@ function updateWidget(id) {
 
   if (!dataStore[id].online) return;
 
+  widgets[id].mem.max = nodeData.total_memory;
+
   widgets[id].cpu.render();
   widgets[id].mem.render();
   widgets[id].net.render();

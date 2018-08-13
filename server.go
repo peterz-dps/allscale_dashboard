@@ -146,6 +146,7 @@ type nodeStatusUpdate struct {
 	State                 string        `json:"state"`
 	CPULoad               float64       `json:"cpu_load"`
 	MemLoad               int64         `json:"mem_load"`
+	TotalMemory           int64         `json:"total_memory"`
 	TaskThroughput        int64         `json:"task_throughput"`
 	WeightedTaskThrougput float64       `json:"weighted_task_througput"`
 	NetworkIn             int64         `json:"network_in"`
@@ -160,6 +161,7 @@ func randNodeStatusUpdate(id int64) nodeStatusUpdate {
 		State:                 "online",
 		CPULoad:               rand.Float64(),
 		MemLoad:               int64(rand.Intn(memLimit)),
+		TotalMemory:           memLimit * 1.2,
 		TaskThroughput:        int64(rand.Intn(maxTaskThroughput)),
 		WeightedTaskThrougput: rand.Float64() * 10,
 		NetworkIn:             int64(rand.Intn(networkLimit)),
