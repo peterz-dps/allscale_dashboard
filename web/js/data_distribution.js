@@ -10,7 +10,7 @@ var numNodes = 0;
 var gridSize = new THREE.Vector3();
 
 // the current state
-var runtimeState;
+var runtimeState = [];
 
 // list of boxes to be drawn
 var boxes = [];
@@ -28,14 +28,15 @@ function selectDataItem( id ) {
   boxes = [];
   gridSize = new THREE.Vector3();
   runtimeState.forEach(function (node) {
+    if (node.state != "online") return;
     node.owned_data.forEach(function (data_item) {
       if (data_item.id != id) return;
       data_item.region.forEach(function (box) {
 
         // keep track of grid size boundaries
         gridSize.x = Math.max(gridSize.x, box.to[0]);
-        gridSize.y = Math.max(gridSize.y, box.to[1]);
-        gridSize.z = Math.max(gridSize.z, box.to[2]);
+        if (box.to.length > 1) gridSize.y = Math.max(gridSize.y, box.to[1]);
+        if (box.to.length > 2) gridSize.z = Math.max(gridSize.z, box.to[2]);
 
         function hue(id) {
           return id / numNodes * 360;
@@ -79,6 +80,7 @@ function updateDataModel(state) {
   // collect new data item ids
   var dataItems = new Set();
   runtimeState.forEach(function (node) {
+    if (node.state != "online") return;
     node.owned_data.forEach(function (data_item) {
       dataItems.add(data_item.id);
     });
@@ -94,8 +96,6 @@ function updateDataModel(state) {
   });
 
   selector.value = oldVal;
-
-  console.log("Number of children: " + selector.children.length);
 }
 
 // process meta-data state (initially empty)
@@ -106,6 +106,7 @@ updateDataModel([]);
 //                       Rendering Operations
 // ------------------------------------------------------------------------
 
+var pcam, ocam;
 var camera, scene, renderer;
 var geometry, material, mesh;
 
@@ -136,11 +137,36 @@ function buildScene() {
 
   var N = gridSize;
 
+  var D = 1 + (gridSize.y > 0) + (gridSize.z > 0);
+  if (D < 3) {
+    // freeze camera
+    if (controls.autoRotate) {
+      controls.autoRotate = false;
+      controls.enableRotate = false;
+      camera = ocam;
+    }
+  } else {
+    // unfreeze camera
+    if (!controls.autoRotate) {
+      controls.autoRotate = true;
+      controls.enableRotate = true;
+      camera = pcam;
+    }
+  }
+
   // the size of each cell
-  var cell_size = new THREE.Vector3(1 / gridSize.x, 1 / gridSize.y, 1 / gridSize.z);
+  var cell_size = new THREE.Vector3(
+      (gridSize.x == 0) ? 0.02 : 1 / gridSize.x,
+      (gridSize.y == 0) ? 0.02 : 1 / gridSize.y,
+      (gridSize.z == 0) ? 0.02 : 1 / gridSize.z
+    );
   var gap = new THREE.Vector3(0.02, 0.02, 0.02);
 
-  var origin = new THREE.Vector3(-0.5, -0.5, -0.5);
+  var origin = new THREE.Vector3(
+    (gridSize.x == 0) ? 0 : -0.5,
+    (gridSize.y == 0) ? 0 : -0.5,
+    (gridSize.z == 0) ? 0 : -0.5
+  );
 
   boxes.forEach(function (region_box) {
 
@@ -177,7 +203,7 @@ function buildScene() {
   });
 
   // draw the bounding box
-  var box = createBox(new THREE.Vector3(1, 1, 1), new THREE.Vector3(0, 0, 0));
+  var box = createBox(new THREE.Vector3(1, (gridSize.y > 0) ? 1 : 0.04, (gridSize.z > 0) ? 1 : 0.04), new THREE.Vector3(0, 0, 0));
   var color = new THREE.Color(0, 0, 0);
   var geo = new THREE.EdgesGeometry(box);
   var mat = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
@@ -191,13 +217,17 @@ function init() {
   var width = dataviz.offsetWidth;
   var height = dataviz.offsetHeight;
 
-  camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 10);
-  camera.position.set(2.0, 2.4, 3.0);
-  camera.up.set(0, 1, 0);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  // orthographic camera for 1D and 2D
+  ocam = new THREE.OrthographicCamera(-1,1,1,-1,1,-1);
 
-  scene = new THREE.Scene();
-  buildScene();
+  // perspecite camera for 3D
+  pcam = new THREE.PerspectiveCamera(30, width / height, 0.01, 10);
+  pcam.position.set(2.0, 2.4, 3.0);
+  pcam.up.set(0, 1, 0);
+  pcam.lookAt(new THREE.Vector3(0, 0, 0));
+
+  // fix one
+  camera = pcam;
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(width, height);
@@ -212,6 +242,9 @@ function init() {
   controls.screenSpacePanning = false;
   controls.maxPolarAngle = Math.PI / 2;
   controls.enablePan = false;
+
+  scene = new THREE.Scene();
+  buildScene();
 }
 
 function animate() {
