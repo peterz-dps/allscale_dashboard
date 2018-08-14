@@ -122,7 +122,7 @@ func listenAndServeHTTP(port int) {
 	http.HandleFunc("/status", status)
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
-	http.ListenAndServe("localhost:"+strconv.Itoa(port), nil)
+	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 }
 
 // ---------------------------------------------------------- Message Generator
