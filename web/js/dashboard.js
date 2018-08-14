@@ -10,7 +10,7 @@ var dataStore = Array(numNodes).fill();
 function mkNodeWidgetContainer(id) {
   return $('<div>')
     .attr('id', `node${id}`)
-    .addClass('node')
+    .addClass('node node-offline')
     .append(
       $('<div>').addClass('node-info').append(
         $('<div>').addClass('node-title').text(`Node ${id}`),
