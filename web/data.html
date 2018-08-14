@@ -43,10 +43,10 @@
   <script>
 
     window.addEventListener("load", function (evt) {
-      var ws = new WebSocket(`ws://${window.location.host}/status`);
+      var ws = new WebSocket(`ws://${window.location.host}/ws`);
       ws.onmessage = processMessage;
       ws.onopen = function (evt) {
-        console.info(" Open");
+        console.info("Status Open");
       };
       ws.onclose = function (evt) {
         console.info("Status Closed");

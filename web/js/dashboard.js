@@ -1,5 +1,7 @@
 const numNodes = 16;
 
+var ws = new WebSocket(`ws://${window.location.host}/ws`);
+
 var timeStep = 0;
 var widgets = {};
 var refresher;
@@ -235,6 +237,14 @@ function processMessage(evt) {
   data = JSON.parse(evt.data);
   // console.log(data);
 
+  if (data.type == "status") {
+    processStatus(data);
+  } else {
+    console.warn("Unknown message type: " + data.type);
+  }
+}
+
+function processStatus(data) {
   if (timeStep >= data.time) return;
   timeStep = data.time;
 

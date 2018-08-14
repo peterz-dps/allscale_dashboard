@@ -28,11 +28,10 @@
   <script>
     addNodes(numNodes);
 
-    window.addEventListener("load", function (evt) {
-      var ws = new WebSocket(`ws://${window.location.host}/status`);
+    $(function () {
       ws.onmessage = processMessage;
       ws.onopen = function (evt) {
-        console.info(" Open");
+        console.info("Status Open");
       };
       ws.onclose = function (evt) {
         console.info("Status Closed");

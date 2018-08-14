@@ -10,13 +10,15 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/dustin/go-broadcast"
 	"github.com/gorilla/websocket"
 )
 
-var broadcaster = broadcast.NewBroadcaster(100)
+var tcpToWsBroadcast = broadcast.NewBroadcaster(100)
+var wsToTcpBroadcast = broadcast.NewBroadcaster(100)
 
 // ----------------------------------------------------------------------- Main
 
@@ -62,6 +64,18 @@ func handleTCPRequest(conn net.Conn) {
 	defer conn.Close()
 	defer log.Println("TCP: Closing connection")
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go handleTCPRequestRead(&wg, conn)
+	go handleTCPRequestWrite(&wg, conn)
+
+	wg.Wait()
+}
+
+func handleTCPRequestRead(wg *sync.WaitGroup, conn net.Conn) {
+	defer wg.Done()
+
 	for {
 		var size uint64
 		err := binary.Read(conn, binary.BigEndian, &size)
@@ -79,7 +93,36 @@ func handleTCPRequest(conn net.Conn) {
 
 		log.Println("TCP:", conn, ":", "successfully read message")
 
-		broadcaster.Submit(msg)
+		tcpToWsBroadcast.Submit(msg)
+	}
+}
+
+func handleTCPRequestWrite(wg *sync.WaitGroup, conn net.Conn) {
+	defer wg.Done()
+
+	ch := make(chan interface{})
+	wsToTcpBroadcast.Register(ch)
+	defer wsToTcpBroadcast.Unregister(ch)
+
+	for msg := range ch {
+		m, ok := msg.([]byte)
+		if !ok {
+			log.Println("TCP: Invalid type for message")
+			continue
+		}
+
+		log.Printf("len(m): %#+v\n", len(m))
+		err := binary.Write(conn, binary.BigEndian, int64(len(m)))
+		if err != nil {
+			log.Println("err write")
+			break
+		}
+
+		_, err = conn.Write(m)
+		if err != nil {
+			log.Println("err write 2")
+			break
+		}
 	}
 }
 
@@ -87,7 +130,7 @@ func handleTCPRequest(conn net.Conn) {
 
 var upgrader = websocket.Upgrader{}
 
-func status(w http.ResponseWriter, r *http.Request) {
+func handleWs(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WS: upgrade:", err)
@@ -98,28 +141,52 @@ func status(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 	defer log.Println("WS: Closing connection")
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go handleWsWrite(&wg, c)
+	go handleWsRead(&wg, c)
+
+	wg.Wait()
+}
+
+func handleWsWrite(wg *sync.WaitGroup, conn *websocket.Conn) {
+	defer wg.Done()
+
 	ch := make(chan interface{})
-	broadcaster.Register(ch)
-	defer broadcaster.Unregister(ch)
+	tcpToWsBroadcast.Register(ch)
+	defer tcpToWsBroadcast.Unregister(ch)
 
 	for msg := range ch {
-
 		m, ok := msg.([]byte)
 		if !ok {
 			log.Println("WS: Invalid type for message")
 			continue
 		}
 
-		if c.WriteMessage(websocket.TextMessage, m) != nil {
+		if conn.WriteMessage(websocket.TextMessage, m) != nil {
 			break
 		}
+	}
+}
+
+func handleWsRead(wg *sync.WaitGroup, conn *websocket.Conn) {
+	defer wg.Done()
+
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+
+		wsToTcpBroadcast.Submit(msg)
 	}
 }
 
 func listenAndServeHTTP(port int) {
 	log.Println("Starting HTTP listener on", port)
 
-	http.HandleFunc("/status", status)
+	http.HandleFunc("/ws", handleWs)
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
@@ -138,6 +205,7 @@ var timeStep int64 = 1
 
 type statusUpdate struct {
 	Time  int64              `json:"time"`
+	Type  string             `json:"type"`
 	Nodes []nodeStatusUpdate `json:"nodes"`
 }
 
@@ -187,6 +255,7 @@ func messageGenerator(updateInterval time.Duration) {
 
 		msg := statusUpdate{
 			Time:  timeStep,
+			Type:  "status",
 			Nodes: nodes,
 		}
 
@@ -196,7 +265,7 @@ func messageGenerator(updateInterval time.Duration) {
 			break
 		}
 
-		broadcaster.Submit(data)
+		tcpToWsBroadcast.Submit(data)
 
 		timeStep++
 

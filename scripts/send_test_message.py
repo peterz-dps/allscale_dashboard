@@ -4,7 +4,7 @@ import socket
 import struct
 
 
-MESSAGE = b'{"type": "status"}'
+MESSAGE = b'{"type": "test"}'
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -9,7 +9,7 @@
     2018/08/09 17:02:31 Starting HTTP listener on 8080
     2018/08/09 17:02:31 Starting TCP listener on 1337
 
-Connect your browser on port `8080` and the runtime status message source to TCP port `1337`.
+Connect your browser on port `8080` and the AllScale runtime to TCP port `1337`.
 Both ports are configurable.
 
     $ go run server.go --help
@@ -27,8 +27,11 @@ A random message generator is provided and can be activated with `-msg-gen`.
 
 ## Message Format
 
-All messages sent to the status message sink must be length prefixed and will be forwarded to all websocket instances.
-See [`send_test_message.py`](scripts/send_test_message.py) for a very basic example.
+All messages sent between this server and the AllScale runtime are length prefixed.
+
+Every message received from the runtime will be forwarded to *all* websocket instances -- and vice versa.
+
+See [`send_test_message.py`](scripts/send_test_message.py) and [`receive_test_message`](scripts/receive_test_message.py) for a very basic example.
 
 The rough specification for status updates can be found in [`runtime_state_dump_example.json`](docs/runtime_state_dump_example.json).
 

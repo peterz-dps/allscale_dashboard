@@ -1,5 +1,6 @@
 {
   "time": 1234,
+  "type": "status",
   "nodes": [
     {
       "id": 0,
