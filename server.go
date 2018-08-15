@@ -112,7 +112,7 @@ func handleTCPRequestWrite(wg *sync.WaitGroup, conn net.Conn) {
 		}
 
 		log.Printf("len(m): %#+v\n", len(m))
-		err := binary.Write(conn, binary.BigEndian, int64(len(m)))
+		err := binary.Write(conn, binary.BigEndian, uint64(len(m)))
 		if err != nil {
 			log.Println("err write")
 			break
