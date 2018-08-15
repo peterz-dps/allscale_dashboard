@@ -64,40 +64,33 @@ func handleTCPRequest(conn net.Conn) {
 	defer conn.Close()
 	defer log.Println("TCP: Closing connection")
 
+	mrw := newMessageReadWriter(conn)
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go handleTCPRequestRead(&wg, conn)
-	go handleTCPRequestWrite(&wg, conn)
+	go handleTCPRequestRead(&wg, mrw)
+	go handleTCPRequestWrite(&wg, mrw)
 
 	wg.Wait()
 }
 
-func handleTCPRequestRead(wg *sync.WaitGroup, conn net.Conn) {
+func handleTCPRequestRead(wg *sync.WaitGroup, mrw *messageReadWriter) {
 	defer wg.Done()
 
 	for {
-		var size uint64
-		err := binary.Read(conn, binary.BigEndian, &size)
+		msg, err := mrw.ReadMessage()
 		if err != nil {
-			log.Println("TCP:", conn, ":", "read size:", err)
 			break
 		}
 
-		msg := make([]byte, size)
-		_, err = io.ReadFull(conn, msg)
-		if err != nil {
-			log.Println("TCP:", conn, ":", "read message:", err)
-			break
-		}
-
-		log.Println("TCP:", conn, ":", "successfully read message")
+		log.Println("TCP:", mrw, ":", "successfully read message")
 
 		tcpToWsBroadcast.Submit(msg)
 	}
 }
 
-func handleTCPRequestWrite(wg *sync.WaitGroup, conn net.Conn) {
+func handleTCPRequestWrite(wg *sync.WaitGroup, mrw *messageReadWriter) {
 	defer wg.Done()
 
 	ch := make(chan interface{})
@@ -111,16 +104,8 @@ func handleTCPRequestWrite(wg *sync.WaitGroup, conn net.Conn) {
 			continue
 		}
 
-		log.Printf("len(m): %#+v\n", len(m))
-		err := binary.Write(conn, binary.BigEndian, uint64(len(m)))
+		_, err := mrw.WriteMessage(m)
 		if err != nil {
-			log.Println("err write")
-			break
-		}
-
-		_, err = conn.Write(m)
-		if err != nil {
-			log.Println("err write 2")
 			break
 		}
 	}
@@ -190,6 +175,41 @@ func listenAndServeHTTP(port int) {
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
+}
+
+// ---------------------------------------------------------- Message Semantics
+
+type messageReadWriter struct {
+	rw io.ReadWriter
+}
+
+func newMessageReadWriter(rw io.ReadWriter) *messageReadWriter {
+	return &messageReadWriter{rw}
+}
+
+func (m *messageReadWriter) ReadMessage() ([]byte, error) {
+	var size uint64
+	err := binary.Read(m.rw, binary.BigEndian, &size)
+	if err != nil {
+		return nil, err
+	}
+
+	p := make([]byte, size)
+	_, err = io.ReadFull(m.rw, p)
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+func (m *messageReadWriter) WriteMessage(p []byte) (int, error) {
+	err := binary.Write(m.rw, binary.BigEndian, uint64(len(p)))
+	if err != nil {
+		return 0, err
+	}
+
+	return m.rw.Write(p)
 }
 
 // ---------------------------------------------------------- Message Generator
