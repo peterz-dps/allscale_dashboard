@@ -41,7 +41,7 @@ function mkNodeWidgetContainer(id) {
       ),
       $('<div>').addClass('node-pro'),
       $('<div>').addClass('node-details'),
-  );
+    );
 }
 
 function addNodes(count) {
@@ -87,6 +87,7 @@ function initCpuWidget(id) {
     orientation: 'bottom',
     pixelsPerTick: 60,
     element: document.querySelector(`#node${id} .node-cpu .node-x-axis`),
+    tickFormat: function (x) { return x % 100000 },
   });
   new Rickshaw.Graph.Axis.Y({
     graph: graph,
@@ -117,11 +118,12 @@ function initMemWidget(id) {
     orientation: 'bottom',
     pixelsPerTick: 60,
     element: document.querySelector(`#node${id} .node-mem .node-x-axis`),
+    tickFormat: function (x) { return x % 100000 },
   });
   new Rickshaw.Graph.Axis.Y({
     graph: graph,
     orientation: 'left',
-    tickFormat: Rickshaw.Fixtures.Number.formatBase1024KMGTP,
+    tickFormat: formatBase1024KMGTP,
     pixelsPerTick: 30,
     element: document.querySelector(`#node${id} .node-mem .node-y-axis`),
   });
@@ -155,6 +157,7 @@ function initNetWidget(id) {
     orientation: 'bottom',
     pixelsPerTick: 60,
     element: document.querySelector(`#node${id} .node-net .node-x-axis`),
+    tickFormat: function (x) { return x % 100000 },
   });
   new Rickshaw.Graph.Axis.Y({
     graph: graph,
@@ -271,3 +274,15 @@ function setRefreshInterval(ms) {
   }
   refresher = setInterval(updateWidgets, ms);
 }
+
+function formatBase1024KMGTP(y) {
+  var abs_y = Math.abs(y);
+  if (abs_y >= 1125899906842624) return (y / 1125899906842624).toFixed(0) + "P";
+  else if (abs_y >= 1099511627776) return (y / 1099511627776).toFixed(0) + "T";
+  else if (abs_y >= 1073741824) return (y / 1073741824).toFixed(0) + "G";
+  else if (abs_y >= 1048576) return (y / 1048576).toFixed(0) + "M";
+  else if (abs_y >= 1024) return (y / 1024).toFixed(0) + "K";
+  else if (abs_y < 1 && abs_y > 0) return y.toFixed(2);
+  else if (abs_y === 0) return '';
+  else { return y }
+};

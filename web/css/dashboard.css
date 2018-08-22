@@ -41,7 +41,7 @@ p {
 
 .node {
   display: inline-block;
-  width: 1000px;
+  width: 950px;
   height: 100px;
   margin: 10px;
   background-color: #eaeaff;
@@ -65,7 +65,7 @@ p {
 }
 
 .node .node-info {
-  width: 120px;
+  width: 110px;
 }
 
 .node .node-title {
@@ -97,9 +97,8 @@ p {
 
 .node .node-details {
   top: 10px;
-  width: 110px;
+  width: 80px;
   overflow: hidden;
-  padding-left: 10px;
   text-align: right;
   white-space: nowrap;
   font-size: 12px;
@@ -109,16 +108,15 @@ p {
 .node .node-chart-title {
   position: absolute;
   top: 5px;
-  left: 0px;
+  left: 60px;
   right: 0px;
   font-size: 12px;
-  text-align: center;
   color: rgb(153, 153, 153);
 }
 
 .node .node-x-axis {
   position: absolute;
-  left: 40px;
+  left: 50px;
   right: 0px;
   bottom: -10px;
   height: 20px;
@@ -126,15 +124,15 @@ p {
 
 .node .node-y-axis {
   position: absolute;
-  top: 15px;
+  top: 25px;
   bottom: 0px;
-  width: 40px;
+  width: 50px;
 }
 
 .node .node-time-chart {
   position: absolute;
-  top: 15px;
-  left: 40px;
+  top: 25px;
+  left: 50px;
   right: 0px;
   bottom: 10px;
 }
