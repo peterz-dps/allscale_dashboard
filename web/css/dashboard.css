@@ -41,7 +41,7 @@ p {
 
 .node {
   display: inline-block;
-  width: 950px;
+  width: 1300px;
   height: 100px;
   margin: 10px;
   background-color: #eaeaff;
@@ -58,6 +58,9 @@ p {
 .node .node-mem,
 .node .node-net,
 .node .node-pro,
+.node .node-spd,
+.node .node-eff,
+.node .node-pow,
 .node .node-details {
   display: inline-block;
   position: relative;
@@ -95,6 +98,22 @@ p {
   width: 140px;
   margin-right: -20px;
 }
+
+.node .node-spd {
+  width: 140px;
+  margin-right: -20px;
+}
+
+.node .node-eff {
+  width: 140px;
+  margin-right: -20px;
+}
+
+.node .node-pow {
+  width: 140px;
+  margin-right: -20px;
+}
+
 
 .node .node-details {
   top: 10px;

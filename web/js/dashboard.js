@@ -40,6 +40,9 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-time-chart')
       ),
       $('<div>').addClass('node-pro'),
+      $('<div>').addClass('node-spd'),
+      $('<div>').addClass('node-eff'),
+      $('<div>').addClass('node-pow'),
       $('<div>').addClass('node-details'),
     );
 }
@@ -64,6 +67,9 @@ function initNodeWidgets(id) {
     'mem': initMemWidget(id),
     'net': initNetWidget(id),
     'pro': initProWidget(id),
+    'spd': initSpdWidget(id),
+    'eff': initEffWidget(id),
+    'pow': initPowWidget(id),
   }
 }
 
@@ -172,18 +178,35 @@ function initNetWidget(id) {
   return graph;
 }
 
-function initProWidget(id) {
+function initGageWidget(id,kind,label,colors) {
   return new JustGage({
-    parentNode: document.querySelector(`#node${id} .node-pro`),
+    parentNode: document.querySelector(`#node${id} .node-${kind}`),
     value: 0,
     min: 0,
     max: 100,
-    title: "Productivity",
-    levelColors: ['#e54b4b', '#faed70', '#2ddafd'],
+    title: label,
+    levelColors: colors,
     startAnimationTime: 0,
     refreshAnimationTime: 0,
   });
 }
+
+function initProWidget(id) {
+  return initGageWidget(id,"pro","Productivity",['#e54b4b', '#faed70', '#2ddafd']);
+}
+
+function initSpdWidget(id) {
+  return initGageWidget(id,"spd","Speed",['#ff0000', '#ffd000', '#00ff6e']);
+}
+
+function initEffWidget(id) {
+  return initGageWidget(id,"eff","Efficiency",['#ff0000', '#ffd000', '#00ff6e']);
+}
+
+function initPowWidget(id) {
+  return initGageWidget(id,"pow","Power",['#00ff6e', '#ffd000', '#ff0000']);
+}
+
 
 function updateDataStore(nodeData) {
   let id = nodeData.id;
@@ -223,6 +246,9 @@ function updateWidget(id) {
   widgets[id].mem.render();
   widgets[id].net.render();
   widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
+  widgets[id].spd.refresh(nodeData.speed * 100);
+  widgets[id].eff.refresh(nodeData.efficiency * 100);
+  widgets[id].pow.refresh(nodeData.power * 100);
 
   $(`#node${id} .node-details`).empty().append(
     $('<p>').html(`Task Throughput<br>${nodeData.task_throughput} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
