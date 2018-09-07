@@ -3,9 +3,35 @@ const numNodes = 16;
 var ws = new WebSocket(`ws://${window.location.host}/ws`);
 
 var timeStep = 0;
+var summary;
 var widgets = {};
 var refresher;
 var dataStore = Array(numNodes).fill();
+
+function initSummary() {
+  $('#summary').append(
+    $('<div>')
+      .attr('id',`node-total`)
+      .addClass('node')
+      .append(
+        $('<div>').addClass('node-info').append(
+          $('<div>').addClass('node-title').text(`System`),
+        ),
+        $('<div>').addClass('node-spd'),
+        $('<div>').addClass('node-eff'),
+        $('<div>').addClass('node-pow'),
+        $('<div>').addClass('node-sco'),
+        $('<div>').addClass('node-details'),
+      )
+    );
+
+    summary = {
+      'spd' : initSpdWidget("-total"),
+      'eff' : initEffWidget("-total"),
+      'pow' : initPowWidget("-total"),
+      'sco' : initScoreWidget("-total"),
+    }
+}
 
 function mkNodeWidgetContainer(id) {
   return $('<div>')
@@ -201,12 +227,16 @@ function initPowWidget(id) {
   return initGageWidget(id,"pow","Power",['#2ddafd', '#faed70', '#e54b4b']);
 }
 
+function initScoreWidget(id) {
+  return initGageWidget(id,"sco","Score",['#e54b4b', '#faed70', '#2ddafd']);
+}
+
 
 function updateDataStore(nodeData) {
   let id = nodeData.id;
 
   $(`#node${id} .node-state`).text(nodeData.state);
-  if (nodeData.state != "online") {
+  if (nodeData.state == "offline") {
     $(`#node${id}`).addClass('node-offline');
 
     dataStore[id].online = false;
@@ -266,10 +296,27 @@ function processMessage(evt) {
   }
 }
 
+function updateSummary(data) {
+
+  summary.spd.refresh(data.speed * 100);
+  summary.eff.refresh(data.efficiency * 100);
+  summary.pow.refresh(data.power * 100);
+  summary.sco.refresh(data.score * 100);
+
+  $(`#node-total .node-details`).empty().append(
+    $('<p>').html(`Task Throughput<br>NA &nbsp;&nbsp; (NA)`),
+    $('<p>').html(`Managed Data Items<br># NA`),
+  );
+}
+
 function processStatus(data) {
   if (timeStep >= data.time) return;
   timeStep = data.time;
 
+  // update summary
+  updateSummary(data);
+
+  // update nodes
   for (let i = 0; i < data.nodes.length; i++) {
     updateDataStore(data.nodes[i]);
   }

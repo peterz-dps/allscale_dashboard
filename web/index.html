@@ -16,6 +16,7 @@
     </div>
     <div id="header-text">Dashboard</div>
   </div>
+  <div id="summary"></div>
   <div id="dashboard"></div>
 
   <script src="js/jquery.min.js"></script>
@@ -26,6 +27,7 @@
   <script src="js/dashboard.js"></script>
 
   <script>
+    initSummary();
     addNodes(numNodes);
 
     $(function () {

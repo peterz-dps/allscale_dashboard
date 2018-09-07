@@ -53,6 +53,7 @@ p {
   opacity: 0.5;
 }
 
+
 .node .node-info,
 .node .node-cpu,
 .node .node-mem,
@@ -61,6 +62,7 @@ p {
 .node .node-spd,
 .node .node-eff,
 .node .node-pow,
+.node .node-sco,
 .node .node-details {
   display: inline-block;
   position: relative;
