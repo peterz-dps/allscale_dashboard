@@ -12,11 +12,12 @@ function initSummary() {
   $('#summary').append(
     $('<div>')
       .attr('id',`node-total`)
-      .addClass('node')
+      .addClass('node node-total')
       .append(
         $('<div>').addClass('node-info').append(
           $('<div>').addClass('node-title').text(`System`),
         ),
+        $('<div>').addClass('node-gap'),
         $('<div>').addClass('node-spd'),
         $('<div>').addClass('node-eff'),
         $('<div>').addClass('node-pow'),
@@ -305,7 +306,7 @@ function updateSummary(data) {
 
   $(`#node-total .node-details`).empty().append(
     $('<p>').html(`Task Throughput<br>NA &nbsp;&nbsp; (NA)`),
-    $('<p>').html(`Managed Data Items<br># NA`),
+    $('<p>').html(`Data Items<br># NA`),
   );
 }
 

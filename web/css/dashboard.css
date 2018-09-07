@@ -53,6 +53,8 @@ p {
   opacity: 0.5;
 }
 
+.node-total {
+}
 
 .node .node-info,
 .node .node-cpu,
@@ -63,6 +65,7 @@ p {
 .node .node-eff,
 .node .node-pow,
 .node .node-sco,
+.node .node-gap,
 .node .node-details {
   display: inline-block;
   position: relative;
@@ -96,25 +99,18 @@ p {
   width: 200px;
 }
 
-.node .node-pro {
-  width: 140px;
+.node .node-gap {
+  width: 230px;
   margin-right: -20px;
 }
 
-.node .node-spd {
-  width: 140px;
-  margin-right: -20px;
-}
-
-.node .node-eff {
-  width: 140px;
-  margin-right: -20px;
-}
-
+.node .node-spd,
+.node .node-eff,
 .node .node-pow {
   width: 140px;
   margin-right: -20px;
 }
+
 
 
 .node .node-details {
