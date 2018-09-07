@@ -39,7 +39,6 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
-      $('<div>').addClass('node-pro'),
       $('<div>').addClass('node-spd'),
       $('<div>').addClass('node-eff'),
       $('<div>').addClass('node-pow'),
@@ -66,7 +65,6 @@ function initNodeWidgets(id) {
     'cpu': initCpuWidget(id),
     'mem': initMemWidget(id),
     'net': initNetWidget(id),
-    'pro': initProWidget(id),
     'spd': initSpdWidget(id),
     'eff': initEffWidget(id),
     'pow': initPowWidget(id),
@@ -191,20 +189,16 @@ function initGageWidget(id,kind,label,colors) {
   });
 }
 
-function initProWidget(id) {
-  return initGageWidget(id,"pro","Productivity",['#e54b4b', '#faed70', '#2ddafd']);
-}
-
 function initSpdWidget(id) {
-  return initGageWidget(id,"spd","Speed",['#ff0000', '#ffd000', '#00ff6e']);
+  return initGageWidget(id,"spd","Speed",['#e54b4b', '#faed70', '#2ddafd']);
 }
 
 function initEffWidget(id) {
-  return initGageWidget(id,"eff","Efficiency",['#ff0000', '#ffd000', '#00ff6e']);
+  return initGageWidget(id,"eff","Efficiency",['#e54b4b', '#faed70', '#2ddafd']);
 }
 
 function initPowWidget(id) {
-  return initGageWidget(id,"pow","Power",['#00ff6e', '#ffd000', '#ff0000']);
+  return initGageWidget(id,"pow","Power",['#2ddafd', '#faed70', '#e54b4b']);
 }
 
 
@@ -245,7 +239,6 @@ function updateWidget(id) {
   widgets[id].cpu.render();
   widgets[id].mem.render();
   widgets[id].net.render();
-  widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
   widgets[id].spd.refresh(nodeData.speed * 100);
   widgets[id].eff.refresh(nodeData.efficiency * 100);
   widgets[id].pow.refresh(nodeData.power * 100);
