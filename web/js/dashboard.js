@@ -189,7 +189,7 @@ function updateDataStore(nodeData) {
   let id = nodeData.id;
 
   $(`#node${id} .node-state`).text(nodeData.state);
-  if (nodeData.state != "online") {
+  if (nodeData.state == "offline") {
     $(`#node${id}`).addClass('node-offline');
 
     dataStore[id].online = false;
