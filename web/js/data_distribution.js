@@ -28,7 +28,7 @@ function selectDataItem( id ) {
   boxes = [];
   gridSize = new THREE.Vector3();
   runtimeState.forEach(function (node) {
-    if (node.state != "online") return;
+    if (node.state == "offline") return;
     node.owned_data.forEach(function (data_item) {
       if (data_item.id != id) return;
       data_item.region.forEach(function (box) {
@@ -80,7 +80,7 @@ function updateDataModel(state) {
   // collect new data item ids
   var dataItems = new Set();
   runtimeState.forEach(function (node) {
-    if (node.state != "online") return;
+    if (node.state == "offline") return;
     node.owned_data.forEach(function (data_item) {
       dataItems.add(data_item.id);
     });
