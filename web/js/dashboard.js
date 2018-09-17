@@ -304,9 +304,20 @@ function updateSummary(data) {
   summary.pow.refresh(data.power * 100);
   summary.sco.refresh(data.score * 100);
 
+  var total_tasks = 0;
+  var total_weighted_tasks = 0;
+  var items = new Set();
+  data.nodes.forEach(function(cur){
+    total_tasks += cur.task_throughput;
+    total_weighted_tasks += cur.weighted_task_througput;
+    cur.owned_data.forEach(function(entry){
+      items.add(entry.id);
+    });
+  });
+
   $(`#node-total .node-details`).empty().append(
-    $('<p>').html(`Task Throughput<br>NA &nbsp;&nbsp; (NA)`),
-    $('<p>').html(`Data Items<br># NA`),
+    $('<p>').html(`Task Throughput<br>${total_tasks.toFixed(2)} &nbsp;&nbsp; (${total_weighted_tasks.toFixed(2)})`),
+    $('<p>').html(`Data Items<br># ${items.size}`),
   );
 }
 
