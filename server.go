@@ -170,7 +170,7 @@ func handleWsRead(wg *sync.WaitGroup, tcpToWsChannel chan interface{}, conn *web
 		wsToTcpBroadcast.Submit(msg)
 	}
 
-	// close tcpToWsChannel to terminate handleTCPRequestWrite
+	// close tcpToWsChannel to terminate handleWsWrite
 	close(tcpToWsChannel)
 }
 
