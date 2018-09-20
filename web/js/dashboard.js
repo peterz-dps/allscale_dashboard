@@ -275,7 +275,7 @@ function updateWidget(id) {
   widgets[id].pow.refresh(nodeData.power * 100);
 
   $(`#node${id} .node-details`).empty().append(
-    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
+    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput.toFixed(2)} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
     $('<p>').html(`Owned Data<br># ${nodeData.owned_data.length}`),
   );
 }
