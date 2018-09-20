@@ -66,9 +66,9 @@ func handleTCPRequest(conn net.Conn) {
 
 	mrw := newMessageReadWriter(conn)
 
+	// cleanup will be done by handleTCPRequestRead
 	wsToTcpChannel := make(chan interface{})
 	wsToTcpBroadcast.Register(wsToTcpChannel)
-	defer wsToTcpBroadcast.Unregister(wsToTcpChannel)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -94,6 +94,7 @@ func handleTCPRequestRead(wg *sync.WaitGroup, wsToTcpChannel chan interface{}, m
 	}
 
 	// close wsToTcpChannel to terminate handleTCPRequestWrite
+	wsToTcpBroadcast.Unregister(wsToTcpChannel)
 	close(wsToTcpChannel)
 }
 
@@ -129,9 +130,9 @@ func handleWs(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 	defer log.Println("WS: Closing connection")
 
+	// cleanup will be done by handleWsRead
 	tcpToWsChannel := make(chan interface{})
 	tcpToWsBroadcast.Register(tcpToWsChannel)
-	defer tcpToWsBroadcast.Unregister(tcpToWsChannel)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -171,6 +172,7 @@ func handleWsRead(wg *sync.WaitGroup, tcpToWsChannel chan interface{}, conn *web
 	}
 
 	// close tcpToWsChannel to terminate handleWsWrite
+	tcpToWsBroadcast.Unregister(tcpToWsChannel)
 	close(tcpToWsChannel)
 }
 
