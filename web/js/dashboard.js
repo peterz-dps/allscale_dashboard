@@ -308,6 +308,7 @@ function updateSummary(data) {
   var total_weighted_tasks = 0;
   var items = new Set();
   data.nodes.forEach(function(cur){
+    if (cur.state == "offline") return;
     total_tasks += cur.task_throughput;
     total_weighted_tasks += cur.weighted_task_througput;
     cur.owned_data.forEach(function(entry){
