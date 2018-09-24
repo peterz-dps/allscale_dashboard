@@ -64,12 +64,9 @@ function updateDataModel(state) {
   // get number of nodes
   numNodes = state.length;
 
-  // update boxes to be drawn
-  selectDataItem(currentDataItem);
-
   // update selection box options
   var selector = document.getElementById("data-item-selection");
-  var oldVal = selector.value;
+  var oldSelected = currentDataItem;
 
   // remove old options
   var numOptions = selector.length;
@@ -78,24 +75,48 @@ function updateDataModel(state) {
   }
 
   // collect new data item ids
-  var dataItems = new Set();
+  var dataItemSet = new Set();
   runtimeState.forEach(function (node) {
     if (node.state == "offline") return;
     node.owned_data.forEach(function (data_item) {
-      dataItems.add(data_item.id);
+      dataItemSet.add(data_item.id);
     });
   });
-  dataItems = Array.from(dataItems.entries()).map(p => p[0]);
+  var dataItems = Array.from(dataItemSet.entries()).map(p => p[0]);
   dataItems.sort((a,b)=>a-b);
 
+  var hasCurrent = false;
   dataItems.forEach(function(id){
     var option = document.createElement("option");
     option.text = `Data Item DI-${id}`;
     option.value = id;
     selector.add(option);
+    if (id == oldSelected) hasCurrent = true;
   });
 
-  selector.value = oldVal;
+  // restore selected option
+  currentDataItem = oldSelected;
+
+  if (dataItems.length == 0) {
+    var option = document.createElement("option");
+    option.text = " - no data items - ";
+    option.value = -1;
+    selector.add(option);
+    selector.disabled = true;
+  } else {
+
+    if (hasCurrent) {
+      selector.value = currentDataItem;
+    } else {
+      selector.value = dataItems[0];
+      currentDataItem = dataItems[0];
+    }
+    selector.disabled = false;
+  }
+
+  // update boxes to be drawn
+  selectDataItem(currentDataItem);
+
 }
 
 // process meta-data state (initially empty)
@@ -118,7 +139,6 @@ animate();
 function buildScene() {
 
   function createBox(size, pos) {
-
     // create the box geometry
     var geometry = new THREE.BoxBufferGeometry();
     var position = pos.clone();
@@ -155,12 +175,13 @@ function buildScene() {
   }
 
   // the size of each cell
+  var gapWidth = 0.02;
   var cell_size = new THREE.Vector3(
-      (gridSize.x == 0) ? 0.02 : 1 / gridSize.x,
-      (gridSize.y == 0) ? 0.02 : 1 / gridSize.y,
-      (gridSize.z == 0) ? 0.02 : 1 / gridSize.z
+      (gridSize.x == 0) ? 2*gapWidth+0.02 : 1 / gridSize.x,
+      (gridSize.y == 0) ? 2*gapWidth+0.02 : 1 / gridSize.y,
+      (gridSize.z == 0) ? 2*gapWidth+0.02 : 1 / gridSize.z
     );
-  var gap = new THREE.Vector3(0.02, 0.02, 0.02);
+  var gap = new THREE.Vector3(gapWidth, gapWidth, gapWidth);
 
   var origin = new THREE.Vector3(
     (gridSize.x == 0) ? 0 : -0.5,
@@ -170,12 +191,28 @@ function buildScene() {
 
   boxes.forEach(function (region_box) {
 
+    if (D < 2) {
+      region_box.min.y = 0;
+      region_box.max.y = 1;
+    }
+
+    if (D < 3) {
+      region_box.min.z = 0;
+      region_box.max.z = 1;
+    }
+
     // get the size of this box
     var boxSize = region_box.max.clone().sub(region_box.min);
     var boxCenter = region_box.max.clone().add(region_box.min).multiplyScalar(0.5);
 
     // get the box
     boxSize.multiply(cell_size).sub(gap);
+
+    // skip to small boxes
+    if (boxSize.x <= 0 || boxSize.y <= 0 || boxSize.z <= 0) {
+      return;
+    }
+
     var position = cell_size.clone().multiply(boxCenter).add(origin);
     //var position = new THREE.Vector3(i*(size.x+0.01),j*(size.y+0.01),k*(size.z+0.01));
     var box = createBox(boxSize, position);
