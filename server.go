@@ -66,16 +66,20 @@ func handleTCPRequest(conn net.Conn) {
 
 	mrw := newMessageReadWriter(conn)
 
+	// cleanup will be done by handleTCPRequestRead
+	wsToTcpChannel := make(chan interface{})
+	wsToTcpBroadcast.Register(wsToTcpChannel)
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go handleTCPRequestRead(&wg, mrw)
-	go handleTCPRequestWrite(&wg, mrw)
+	go handleTCPRequestRead(&wg, wsToTcpChannel, mrw)
+	go handleTCPRequestWrite(&wg, wsToTcpChannel, mrw)
 
 	wg.Wait()
 }
 
-func handleTCPRequestRead(wg *sync.WaitGroup, mrw *messageReadWriter) {
+func handleTCPRequestRead(wg *sync.WaitGroup, wsToTcpChannel chan interface{}, mrw *messageReadWriter) {
 	defer wg.Done()
 
 	for {
@@ -88,16 +92,16 @@ func handleTCPRequestRead(wg *sync.WaitGroup, mrw *messageReadWriter) {
 
 		tcpToWsBroadcast.Submit(msg)
 	}
+
+	// close wsToTcpChannel to terminate handleTCPRequestWrite
+	wsToTcpBroadcast.Unregister(wsToTcpChannel)
+	close(wsToTcpChannel)
 }
 
-func handleTCPRequestWrite(wg *sync.WaitGroup, mrw *messageReadWriter) {
+func handleTCPRequestWrite(wg *sync.WaitGroup, wsToTcpChannel chan interface{}, mrw *messageReadWriter) {
 	defer wg.Done()
 
-	ch := make(chan interface{})
-	wsToTcpBroadcast.Register(ch)
-	defer wsToTcpBroadcast.Unregister(ch)
-
-	for msg := range ch {
+	for msg := range wsToTcpChannel {
 		m, ok := msg.([]byte)
 		if !ok {
 			log.Println("TCP: Invalid type for message")
@@ -126,23 +130,23 @@ func handleWs(w http.ResponseWriter, r *http.Request) {
 	defer c.Close()
 	defer log.Println("WS: Closing connection")
 
+	// cleanup will be done by handleWsRead
+	tcpToWsChannel := make(chan interface{})
+	tcpToWsBroadcast.Register(tcpToWsChannel)
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go handleWsWrite(&wg, c)
-	go handleWsRead(&wg, c)
+	go handleWsWrite(&wg, tcpToWsChannel, c)
+	go handleWsRead(&wg, tcpToWsChannel, c)
 
 	wg.Wait()
 }
 
-func handleWsWrite(wg *sync.WaitGroup, conn *websocket.Conn) {
+func handleWsWrite(wg *sync.WaitGroup, tcpToWsChannel chan interface{}, conn *websocket.Conn) {
 	defer wg.Done()
 
-	ch := make(chan interface{})
-	tcpToWsBroadcast.Register(ch)
-	defer tcpToWsBroadcast.Unregister(ch)
-
-	for msg := range ch {
+	for msg := range tcpToWsChannel {
 		m, ok := msg.([]byte)
 		if !ok {
 			log.Println("WS: Invalid type for message")
@@ -155,7 +159,7 @@ func handleWsWrite(wg *sync.WaitGroup, conn *websocket.Conn) {
 	}
 }
 
-func handleWsRead(wg *sync.WaitGroup, conn *websocket.Conn) {
+func handleWsRead(wg *sync.WaitGroup, tcpToWsChannel chan interface{}, conn *websocket.Conn) {
 	defer wg.Done()
 
 	for {
@@ -166,6 +170,10 @@ func handleWsRead(wg *sync.WaitGroup, conn *websocket.Conn) {
 
 		wsToTcpBroadcast.Submit(msg)
 	}
+
+	// close tcpToWsChannel to terminate handleWsWrite
+	tcpToWsBroadcast.Unregister(tcpToWsChannel)
+	close(tcpToWsChannel)
 }
 
 func listenAndServeHTTP(port int) {
