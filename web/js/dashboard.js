@@ -4,6 +4,7 @@ var ws = new WebSocket(`ws://${window.location.host}/ws`);
 
 var timeStep = 0;
 var widgets = {};
+var maxNetwork = 0;
 var refresher;
 var dataStore = Array(numNodes).fill();
 
@@ -218,6 +219,10 @@ function updateWidget(id) {
   if (!dataStore[id].online) return;
 
   widgets[id].mem.max = nodeData.total_memory;
+
+  maxNetwork = Math.max(maxNetwork, nodeData.network_in, nodeData.network_out);
+  widgets[id].net.max = maxNetwork;
+  widgets[id].net.min = -maxNetwork;
 
   widgets[id].cpu.render();
   widgets[id].mem.render();
