@@ -156,7 +156,7 @@ function initMemWidget(id) {
     graph: graph,
     orientation: 'left',
     tickFormat: formatBase1024KMGTP,
-    pixelsPerTick: 30,
+    pixelsPerTick: 15,
     element: document.querySelector(`#node${id} .node-mem .node-y-axis`),
   });
 
@@ -259,6 +259,7 @@ function updateDataStore(nodeData) {
     dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: -nodeData.network_out });
     dataStore[id].raw = nodeData;
   }
+
 }
 
 function updateWidget(id) {
@@ -302,6 +303,23 @@ function processMessage(evt) {
   }
 }
 
+function fillInMissingNodes(data) {
+
+  var givenNodes = new Set();
+  for (let i=0; i<data.nodes.length; i++) {
+    givenNodes.add(data.nodes[i].id);
+  }
+
+  for(let i=0; i<numNodes; i++) {
+    if (givenNodes.has(i)) continue;
+    var node = {};
+    node.id = i;
+    node.state = "offline";
+    data.nodes.push(node);
+  }
+
+}
+
 function updateSummary(data) {
 
   summary.spd.refresh(data.speed * 100);
@@ -330,6 +348,9 @@ function updateSummary(data) {
 function processStatus(data) {
   if (timeStep >= data.time) return;
   timeStep = data.time;
+
+  // extend for non-specified nodes
+  fillInMissingNodes(data);
 
   // update summary
   updateSummary(data);
