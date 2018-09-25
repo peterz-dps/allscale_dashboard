@@ -232,9 +232,13 @@ const (
 var timeStep int64 = 1
 
 type statusUpdate struct {
-	Time  int64              `json:"time"`
-	Type  string             `json:"type"`
-	Nodes []nodeStatusUpdate `json:"nodes"`
+	Time       int64              `json:"time"`
+	Type       string             `json:"type"`
+	Speed      float64            `json:"speed"`
+	Efficiency float64            `json:"efficiency"`
+	Power      float64            `json:"power"`
+	Score      float64            `json:"score"`
+	Nodes      []nodeStatusUpdate `json:"nodes"`
 }
 
 type nodeStatusUpdate struct {
@@ -247,6 +251,9 @@ type nodeStatusUpdate struct {
 	WeightedTaskThrougput float64       `json:"weighted_task_througput"`
 	NetworkIn             int64         `json:"network_in"`
 	NetworkOut            int64         `json:"network_out"`
+	Speed                 float64       `json:"speed"`
+	Efficiency            float64       `json:"efficiency"`
+	Power                 float64       `json:"power"`
 	IdleRate              float64       `json:"idle_rate"`
 	OwnedData             []interface{} `json:"owned_data"`
 }
@@ -262,6 +269,9 @@ func randNodeStatusUpdate(id int64) nodeStatusUpdate {
 		WeightedTaskThrougput: rand.Float64() * 10,
 		NetworkIn:             int64(rand.Intn(networkLimit)),
 		NetworkOut:            int64(rand.Intn(networkLimit)),
+		Speed:                 rand.Float64(),
+		Efficiency:            rand.Float64(),
+		Power:                 rand.Float64(),
 		IdleRate:              rand.Float64(),
 		OwnedData:             make([]interface{}, 0),
 	}
@@ -282,9 +292,13 @@ func messageGenerator(updateInterval time.Duration) {
 		}
 
 		msg := statusUpdate{
-			Time:  timeStep,
-			Type:  "status",
-			Nodes: nodes,
+			Time:       timeStep,
+			Type:       "status",
+			Speed:      rand.Float64(),
+			Efficiency: rand.Float64(),
+			Power:      rand.Float64(),
+			Score:      rand.Float64(),
+			Nodes:      nodes,
 		}
 
 		data, err := json.Marshal(msg)
