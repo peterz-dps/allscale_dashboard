@@ -3,10 +3,37 @@ const numNodes = 16;
 var ws = new WebSocket(`ws://${window.location.host}/ws`);
 
 var timeStep = 0;
+var summary;
 var widgets = {};
 var maxNetwork = 0;
 var refresher;
 var dataStore = Array(numNodes).fill();
+
+function initSummary() {
+  $('#summary').append(
+    $('<div>')
+      .attr('id', `node-total`)
+      .addClass('node node-total')
+      .append(
+        $('<div>').addClass('node-info').append(
+          $('<div>').addClass('node-title').text(`System`),
+        ),
+        $('<div>').addClass('node-gap'),
+        $('<div>').addClass('node-spd'),
+        $('<div>').addClass('node-eff'),
+        $('<div>').addClass('node-pow'),
+        $('<div>').addClass('node-sco'),
+        $('<div>').addClass('node-details'),
+      )
+  );
+
+  summary = {
+    'spd': initSpdWidget("-total"),
+    'eff': initEffWidget("-total"),
+    'pow': initPowWidget("-total"),
+    'sco': initScoreWidget("-total"),
+  }
+}
 
 function mkNodeWidgetContainer(id) {
   return $('<div>')
@@ -40,7 +67,9 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
-      $('<div>').addClass('node-pro'),
+      $('<div>').addClass('node-spd'),
+      $('<div>').addClass('node-eff'),
+      $('<div>').addClass('node-pow'),
       $('<div>').addClass('node-details'),
     );
 }
@@ -64,7 +93,9 @@ function initNodeWidgets(id) {
     'cpu': initCpuWidget(id),
     'mem': initMemWidget(id),
     'net': initNetWidget(id),
-    'pro': initProWidget(id),
+    'spd': initSpdWidget(id),
+    'eff': initEffWidget(id),
+    'pow': initPowWidget(id),
   }
 }
 
@@ -125,7 +156,7 @@ function initMemWidget(id) {
     graph: graph,
     orientation: 'left',
     tickFormat: formatBase1024KMGTP,
-    pixelsPerTick: 30,
+    pixelsPerTick: 15,
     element: document.querySelector(`#node${id} .node-mem .node-y-axis`),
   });
 
@@ -173,18 +204,35 @@ function initNetWidget(id) {
   return graph;
 }
 
-function initProWidget(id) {
+function initGageWidget(id, kind, label, colors) {
   return new JustGage({
-    parentNode: document.querySelector(`#node${id} .node-pro`),
+    parentNode: document.querySelector(`#node${id} .node-${kind}`),
     value: 0,
     min: 0,
     max: 100,
-    title: "Productivity",
-    levelColors: ['#e54b4b', '#faed70', '#2ddafd'],
+    title: label,
+    levelColors: colors,
     startAnimationTime: 0,
     refreshAnimationTime: 0,
   });
 }
+
+function initSpdWidget(id) {
+  return initGageWidget(id, "spd", "Speed", ['#e54b4b', '#faed70', '#2ddafd']);
+}
+
+function initEffWidget(id) {
+  return initGageWidget(id, "eff", "Efficiency", ['#e54b4b', '#faed70', '#2ddafd']);
+}
+
+function initPowWidget(id) {
+  return initGageWidget(id, "pow", "Power", ['#2ddafd', '#faed70', '#e54b4b']);
+}
+
+function initScoreWidget(id) {
+  return initGageWidget(id, "sco", "Score", ['#e54b4b', '#faed70', '#2ddafd']);
+}
+
 
 function updateDataStore(nodeData) {
   let id = nodeData.id;
@@ -227,10 +275,12 @@ function updateWidget(id) {
   widgets[id].cpu.render();
   widgets[id].mem.render();
   widgets[id].net.render();
-  widgets[id].pro.refresh((1 - nodeData.idle_rate) * 100);
+  widgets[id].spd.refresh(nodeData.speed * 100);
+  widgets[id].eff.refresh(nodeData.efficiency * 100);
+  widgets[id].pow.refresh(nodeData.power * 100);
 
   $(`#node${id} .node-details`).empty().append(
-    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
+    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput.toFixed(2)} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
     $('<p>').html(`Owned Data<br># ${nodeData.owned_data.length}`),
   );
 }
@@ -252,10 +302,59 @@ function processMessage(evt) {
   }
 }
 
+function fillInMissingNodes(data) {
+
+  var givenNodes = new Set();
+  for (let i = 0; i < data.nodes.length; i++) {
+    givenNodes.add(data.nodes[i].id);
+  }
+
+  for (let i = 0; i < numNodes; i++) {
+    if (givenNodes.has(i)) continue;
+    var node = {};
+    node.id = i;
+    node.state = "offline";
+    data.nodes.push(node);
+  }
+
+}
+
+function updateSummary(data) {
+
+  summary.spd.refresh(data.speed * 100);
+  summary.eff.refresh(data.efficiency * 100);
+  summary.pow.refresh(data.power * 100);
+  summary.sco.refresh(data.score * 100);
+
+  var total_tasks = 0;
+  var total_weighted_tasks = 0;
+  var items = new Set();
+  data.nodes.forEach(function (cur) {
+    if (cur.state == "offline") return;
+    total_tasks += cur.task_throughput;
+    total_weighted_tasks += cur.weighted_task_througput;
+    cur.owned_data.forEach(function (entry) {
+      items.add(entry.id);
+    });
+  });
+
+  $(`#node-total .node-details`).empty().append(
+    $('<p>').html(`Task Throughput<br>${total_tasks.toFixed(2)} &nbsp;&nbsp; (${total_weighted_tasks.toFixed(2)})`),
+    $('<p>').html(`Data Items<br># ${items.size}`),
+  );
+}
+
 function processStatus(data) {
   if (timeStep >= data.time) return;
   timeStep = data.time;
 
+  // extend for non-specified nodes
+  fillInMissingNodes(data);
+
+  // update summary
+  updateSummary(data);
+
+  // update nodes
   for (let i = 0; i < data.nodes.length; i++) {
     updateDataStore(data.nodes[i]);
   }
