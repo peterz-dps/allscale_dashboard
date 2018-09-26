@@ -1,4 +1,4 @@
-const numNodes = 16;
+const numNodes2 = 16;
 
 const nodeColor = [
   '#6ab73f',
@@ -26,7 +26,7 @@ var widgets = {};
 
 var dataStore = {
   summary: {},
-  nodes: Array(numNodes).fill()
+  nodes: Array(numNodes2).fill()
 }
 
 function initSummary() {
@@ -40,7 +40,7 @@ function initSummary() {
 }
 
 function initNodes() {
-  for (let i = 0; i < numNodes; i++) {
+  for (let i = 0; i < numNodes2; i++) {
     dataStore.nodes[i] = {
       speed: [],
       efficiency: [],
@@ -50,7 +50,7 @@ function initNodes() {
 
   let $legend = $('#legend');
 
-  for (let i = 0; i < numNodes; i++) {
+  for (let i = 0; i < numNodes2; i++) {
     $legend.append(
       $('<div>')
         .attr('id', `node${i}`)
@@ -75,6 +75,10 @@ function processMessage(evt) {
 
   if (data.type == "status") {
     processStatus(data);
+
+    // data_distribution.js
+    updateDataModel(data.nodes);
+    buildScene();
   } else {
     console.warn("Unknown message type: " + data.type);
   }
@@ -104,7 +108,7 @@ function fillInMissingNodes(data) {
     givenNodes.add(data.nodes[i].id);
   }
 
-  for (let i = 0; i < numNodes; i++) {
+  for (let i = 0; i < numNodes2; i++) {
     if (givenNodes.has(i)) continue;
     var node = {};
     node.id = i;
@@ -198,7 +202,7 @@ function initGageWidget(id, label, colors) {
 
 function initLineWidget(id) {
   let series = [];
-  for (let i = 0; i < numNodes; i++) {
+  for (let i = 0; i < numNodes2; i++) {
     series.push({
       color: nodeColor[i],
       data: dataStore.nodes[i][id],

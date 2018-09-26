@@ -127,3 +127,19 @@ body {
   bottom: 0px;
   width: 34px;
 }
+
+/* ------------------------------------------------------- Data Distribution */
+
+#dataviz-controls {
+  position: absolute;
+  z-index: 1;
+}
+
+#dataviz {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  height: 236px;
+}

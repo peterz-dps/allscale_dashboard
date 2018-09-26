@@ -153,7 +153,6 @@ function buildScene() {
   }
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xffffff);
 
   var N = gridSize;
 
@@ -266,8 +265,9 @@ function init() {
   // fix one
   camera = pcam;
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
+  renderer.setClearColor(0x000000, 0);
   dataviz.appendChild(renderer.domElement);
 
   // setup the interactive controls support
@@ -307,12 +307,6 @@ function render() {
 function dataItemSelectionChanged() {
   // switch to new data item
   selectDataItem(document.getElementById("data-item-selection").value);
-}
-
-function processMessage( evt ) {
-  data = JSON.parse(evt.data);
-  updateDataModel(data.nodes);
-  buildScene();
 }
 
 // --- manual interaction ---

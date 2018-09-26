@@ -38,6 +38,11 @@
   <script src="js/data_distribution.js"></script>
 
   <script>
+    function processMessage(evt) {
+      data = JSON.parse(evt.data);
+      updateDataModel(data.nodes);
+      buildScene();
+    }
 
     window.addEventListener("load", function (evt) {
       var ws = new WebSocket(`ws://${window.location.host}/ws`);
@@ -52,7 +57,6 @@
         console.error(evt.data);
       };
     });
-
   </script>
 
 </body>

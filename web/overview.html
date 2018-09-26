@@ -46,7 +46,14 @@
         <div class="x-axis"></div>
         <div class="y-axis"></div>
       </td>
-      <td id="data" class="box">data</td>
+      <td id="data" class="box">
+        <div id="dataviz-controls">
+          <select id="data-item-selection" disabled="true" onchange="dataItemSelectionChanged()">
+            <option value="-1"> - no data items - </option>
+          </select>
+        </div>
+        <div id="dataviz"></div>
+      </td>
     </tr>
   </table>
 
@@ -56,6 +63,20 @@
   <script src="js/raphael-2.1.4.min.js"></script>
   <script src="js/justgage.js"></script>
   <script src="js/overview.js"></script>
+
+  <script src="js/three.min.js"></script>
+  <script src="js/controls/OrbitControls.js"></script>
+
+  <script>
+    var data_distribution_state = [];
+  </script>
+
+  <script src="js/test/test_data_3.js"></script>
+  <script src="js/test/test_data_4.js"></script>
+  <script src="js/test/test_data_15.js"></script>
+  <script src="js/test/test_data_16.js"></script>
+
+  <script src="js/data_distribution.js"></script>
 
   <script>
     var ws = new WebSocket(`ws://${window.location.host}/ws`);
