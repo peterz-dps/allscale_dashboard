@@ -19,7 +19,7 @@ var boxes = [];
 var currentDataItem = 1;
 
 // updates the list of boxes to be drawn to represent the selected item
-function selectDataItem( id ) {
+function selectDataItem(id) {
 
   // update current data item selection
   currentDataItem = id;
@@ -74,7 +74,7 @@ function updateDataModel(state) {
 
   // remove old options
   var numOptions = selector.length;
-  for (var i=0; i < numOptions; i++) {
+  for (var i = 0; i < numOptions; i++) {
     selector.remove(0);
   }
 
@@ -87,10 +87,10 @@ function updateDataModel(state) {
     });
   });
   var dataItems = Array.from(dataItemSet.entries()).map(p => p[0]);
-  dataItems.sort((a,b)=>a-b);
+  dataItems.sort((a, b) => a - b);
 
   var hasCurrent = false;
-  dataItems.forEach(function(id){
+  dataItems.forEach(function (id) {
     var option = document.createElement("option");
     option.text = `Data Item DI-${id}`;
     option.value = id;
@@ -180,10 +180,10 @@ function buildScene() {
   // the size of each cell
   var gapWidth = 0.02;
   var cell_size = new THREE.Vector3(
-      (gridSize.x == 0) ? 2*gapWidth+0.02 : 1 / gridSize.x,
-      (gridSize.y == 0) ? 2*gapWidth+0.02 : 1 / gridSize.y,
-      (gridSize.z == 0) ? 2*gapWidth+0.02 : 1 / gridSize.z
-    );
+    (gridSize.x == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.x,
+    (gridSize.y == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.y,
+    (gridSize.z == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.z
+  );
   var gap = new THREE.Vector3(gapWidth, gapWidth, gapWidth);
 
   var origin = new THREE.Vector3(
@@ -258,7 +258,7 @@ function init() {
   var height = dataviz.offsetHeight;
 
   // orthographic camera for 1D and 2D
-  ocam = new THREE.OrthographicCamera(-1,1,1,-1,1,-1);
+  ocam = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, -1);
 
   // perspecite camera for 3D
   pcam = new THREE.PerspectiveCamera(30, width / height, 0.01, 10);
@@ -275,7 +275,7 @@ function init() {
   dataviz.appendChild(renderer.domElement);
 
   // setup the interactive controls support
-  controls = new THREE.OrbitControls( camera, renderer.domElement );
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.25;
   controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
