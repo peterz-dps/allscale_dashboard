@@ -287,6 +287,7 @@ func messageGenerator(updateInterval time.Duration) {
 		}
 
 		if timeStep%20 > 10 {
+			nodes[3].State = "standby"
 			nodes[7].State = "offline"
 			nodes[11].State = "offline"
 		}

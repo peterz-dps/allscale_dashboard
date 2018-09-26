@@ -22,8 +22,13 @@ body {
   border-radius: 2px;
 }
 
+.standby {
+  opacity: 0.2;
+}
+
 .offline {
   opacity: 0.2;
+  text-decoration: line-through;
 }
 
 #main {
@@ -54,10 +59,21 @@ body {
   color: gray;
 }
 
+#legend {
+  width: 140px;
+}
+
 #legend > div {
   font-family: Orbitron;
   font-size: 18px;
   margin: 8px 0;
+}
+
+#legend .node-id {
+  display: inline-block;
+  text-align: right;
+  text-decoration: inherit;
+  width: 30px;
 }
 
 #legend .node-color {
@@ -69,16 +85,6 @@ body {
 
   border: solid thin gray;
   border-radius: 2px;
-}
-
-#legend {
-  width: 140px;
-}
-
-#legend .node-id {
-  display: inline-block;
-  text-align: right;
-  width: 30px;
 }
 
 #speed,

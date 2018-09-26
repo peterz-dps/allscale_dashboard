@@ -139,17 +139,24 @@ function updateSummary(data) {
 function updateNode(nodeData) {
   let id = nodeData.id;
 
-  if (nodeData.state == 'offline') {
+  if (nodeData.state == 'standby') {
+    $(`#node${id}`).addClass('standby');
+    $(`#node${id}`).removeClass('offline');
+  } else if (nodeData.state == 'offline') {
+    $(`#node${id}`).removeClass('standby');
     $(`#node${id}`).addClass('offline');
+  } else {
+    $(`#node${id}`).removeClass('standby');
+    $(`#node${id}`).removeClass('offline');
+  }
 
+  if (nodeData.state == 'offline') {
     dataStore.nodes[id].online = false;
     dataStore.nodes[id].speed = shiftPush(dataStore.nodes[id].speed, { x: timeStep, y: 0 });
     dataStore.nodes[id].efficiency = shiftPush(dataStore.nodes[id].efficiency, { x: timeStep, y: 0 });
     dataStore.nodes[id].power = shiftPush(dataStore.nodes[id].power, { x: timeStep, y: 0 });
     dataStore.nodes[id].raw = undefined;
   } else {
-    $(`#node${id}`).removeClass('offline');
-
     dataStore.nodes[id].online = true;
     dataStore.nodes[id].speed = shiftPush(dataStore.nodes[id].speed, { x: timeStep, y: nodeData.speed * 100 });
     dataStore.nodes[id].efficiency = shiftPush(dataStore.nodes[id].efficiency, { x: timeStep, y: nodeData.efficiency * 100 });
