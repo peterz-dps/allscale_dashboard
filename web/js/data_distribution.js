@@ -47,7 +47,11 @@ function selectDataItem( id ) {
         boxes.push({
           "min": new THREE.Vector3(...box.from),
           "max": new THREE.Vector3(...box.to),
-          "color": new THREE.Color(`hsl( ${hue(node.id)}, 100%, 50%)`)
+          "color": new THREE.Color(
+            typeof nodeColor !== "undefined"
+              ? nodeColor[node.id]
+              : `hsl( ${hue(node.id)}, 100%, 50%)`
+          ),
         });
       });
     });
