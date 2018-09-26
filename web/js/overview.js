@@ -75,10 +75,6 @@ function processMessage(evt) {
 
   if (data.type == "status") {
     processStatus(data);
-
-    // data_distribution.js
-    updateDataModel(data.nodes);
-    buildScene();
   } else {
     console.warn("Unknown message type: " + data.type);
   }
@@ -96,6 +92,12 @@ function processStatus(data) {
   for (let i = 0; i < data.nodes.length; i++) {
     updateNode(data.nodes[i]);
   }
+
+  // data_distribution.js
+  updateDataModel(data.nodes);
+  buildScene();
+
+  $('#scheduler').val(data.scheduler);
 
   if (!refresher) {
     setRefreshInterval(500);
@@ -235,6 +237,15 @@ function initLineWidget(id) {
 
   return graph;
 }
+
+// ------------------------------------------------------------------ Controls
+
+$('#scheduler').on('change', function (e) {
+  ws.send(JSON.stringify({
+    type: 'scheduler',
+    scheduler: this.value
+  }));
+});
 
 // ------------------------------------------------------------------ Utilities
 

@@ -234,6 +234,7 @@ var timeStep int64 = 1
 type statusUpdate struct {
 	Time       int64              `json:"time"`
 	Type       string             `json:"type"`
+	Scheduler  string             `json:"scheduler"`
 	Speed      float64            `json:"speed"`
 	Efficiency float64            `json:"efficiency"`
 	Power      float64            `json:"power"`
@@ -295,6 +296,7 @@ func messageGenerator(updateInterval time.Duration) {
 		msg := statusUpdate{
 			Time:       timeStep,
 			Type:       "status",
+			Scheduler:  "static",
 			Speed:      rand.Float64(),
 			Efficiency: rand.Float64(),
 			Power:      rand.Float64(),
