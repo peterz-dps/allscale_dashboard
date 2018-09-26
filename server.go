@@ -182,7 +182,11 @@ func listenAndServeHTTP(port int) {
 	http.HandleFunc("/ws", handleWs)
 	fs := http.FileServer(http.Dir("web"))
 	http.Handle("/", fs)
-	http.ListenAndServe(":"+strconv.Itoa(port), nil)
+
+	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	if err != nil {
+		log.Println("HTTP:", err)
+	}
 }
 
 // ---------------------------------------------------------- Message Semantics
