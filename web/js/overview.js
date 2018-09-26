@@ -54,11 +54,17 @@ function initNodes() {
     $legend.append(
       $('<div>')
         .attr('id', `node${i}`)
+        .attr('data-id', i)
         .append(
           'Node',
           $('<div>').addClass('node-id').text(i),
           $('<div>').addClass('node-color').attr('style', `background-color: ${nodeColor[i]}`)
-        )
+        ).click(function () {
+          ws.send(JSON.stringify({
+            type: 'toggle_state',
+            node: i,
+          }));
+        })
     );
   }
 }
