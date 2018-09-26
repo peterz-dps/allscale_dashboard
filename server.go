@@ -296,7 +296,7 @@ func messageGenerator(updateInterval time.Duration) {
 		msg := statusUpdate{
 			Time:       timeStep,
 			Type:       "status",
-			Scheduler:  "static",
+			Scheduler:  "random",
 			Speed:      rand.Float64(),
 			Efficiency: rand.Float64(),
 			Power:      rand.Float64(),
