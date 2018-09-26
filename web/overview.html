@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>AllScale Dashboard</title>
+  <meta charset="utf-8">
+  <link href="css/bootstrap-grid.min.css" rel="stylesheet">
+  <link href="css/rickshaw.min.css" rel="stylesheet">
+  <link href="css/overview.css" rel="stylesheet">
+  <link rel="shortcut icon" href="images/allscale.ico" type="image/x-icon">
+</head>
+
+<body>
+  <table id="main">
+    <tr>
+      <td id="summary" class="box" colspan="3">
+        <img id="logo" alt="AllScale Logo" src="images/allscale.png">
+
+        <div id="summary-speed"></div>
+        <div id="summary-efficiency"></div>
+        <div id="summary-power"></div>
+        <div id="summary-score"></div>
+
+        <div id="summary-details"></div>
+      </td>
+    </tr>
+    <tr>
+      <td id="legend" class="box" rowspan="2"></td>
+      <td id="speed" class="box">
+        <div class="chart-title">Speed</div>
+        <div class="chart"></div>
+        <div class="x-axis"></div>
+        <div class="y-axis"></div>
+      </td>
+      <td id="efficiency" class="box">
+        <div class="chart-title">Efficiency</div>
+        <div class="chart"></div>
+        <div class="x-axis"></div>
+        <div class="y-axis"></div>
+      </td>
+    </tr>
+    <tr>
+      <td id="power" class="box">
+        <div class="chart-title">Power</div>
+        <div class="chart"></div>
+        <div class="x-axis"></div>
+        <div class="y-axis"></div>
+      </td>
+      <td id="data" class="box">data</td>
+    </tr>
+  </table>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/d3.min.js"></script>
+  <script src="js/rickshaw.min.js"></script>
+  <script src="js/raphael-2.1.4.min.js"></script>
+  <script src="js/justgage.js"></script>
+  <script src="js/overview.js"></script>
+
+  <script>
+    var ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+    initSummary();
+    initNodes();
+    initWidgets();
+
+    $(function () {
+      ws.onmessage = processMessage;
+      ws.onopen = function (evt) {
+        console.info("Status Open");
+      };
+      ws.onclose = function (evt) {
+        console.info("Status Closed");
+      };
+      ws.onerror = function (evt) {
+        console.error(evt.data);
+      };
+    });
+  </script>
+
+</body>
+
+</html>
