@@ -158,9 +158,12 @@ function buildScene() {
 
   scene = new THREE.Scene();
 
+  // if there is no content, don't draw anything
+  if (boxes.length==0) return;
+
   var N = gridSize;
 
-  var D = 1 + (gridSize.y > 0) + (gridSize.z > 0);
+  var D = (gridSize.x > 0) + (gridSize.y > 0) + (gridSize.z > 0);
   if (D < 3) {
     // freeze camera
     if (controls.autoRotate) {
@@ -177,19 +180,26 @@ function buildScene() {
     }
   }
 
+  // fix the size of the full area
+  var area_size = new THREE.Vector3(
+    (gridSize.x == 0) ? 0.15 : (gridSize.y == 0 ? 1.7 : 1),
+    (gridSize.y == 0) ? 0.15 : 1,
+    (gridSize.z == 0) ? 0.15 : 1
+  );
+
   // the size of each cell
   var gapWidth = 0.02;
   var cell_size = new THREE.Vector3(
-    (gridSize.x == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.x,
-    (gridSize.y == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.y,
-    (gridSize.z == 0) ? 2 * gapWidth + 0.02 : 1 / gridSize.z
+    (gridSize.x == 0) ? area_size.x : area_size.x / gridSize.x,
+    (gridSize.y == 0) ? area_size.y : area_size.y / gridSize.y,
+    (gridSize.z == 0) ? area_size.z : area_size.z / gridSize.z
   );
   var gap = new THREE.Vector3(gapWidth, gapWidth, gapWidth);
 
   var origin = new THREE.Vector3(
-    (gridSize.x == 0) ? 0 : -0.5,
-    (gridSize.y == 0) ? 0 : -0.5,
-    (gridSize.z == 0) ? 0 : -0.5
+    -area_size.x/2,
+    -area_size.y/2,
+    -area_size.z/2
   );
 
   boxes.forEach(function (region_box) {
@@ -211,13 +221,12 @@ function buildScene() {
     // get the box
     boxSize.multiply(cell_size).sub(gap);
 
-    // skip to small boxes
+    // skip too small boxes
     if (boxSize.x <= 0 || boxSize.y <= 0 || boxSize.z <= 0) {
       return;
     }
 
     var position = cell_size.clone().multiply(boxCenter).add(origin);
-    //var position = new THREE.Vector3(i*(size.x+0.01),j*(size.y+0.01),k*(size.z+0.01));
     var box = createBox(boxSize, position);
 
     // pick a color
@@ -239,11 +248,10 @@ function buildScene() {
     var wireframe = new THREE.LineSegments(geo, mat);
     scene.add(wireframe);
 
-
   });
 
   // draw the bounding box
-  var box = createBox(new THREE.Vector3(1, (gridSize.y > 0) ? 1 : 0.04, (gridSize.z > 0) ? 1 : 0.04), new THREE.Vector3(0, 0, 0));
+  var box = createBox(area_size, new THREE.Vector3(0, 0, 0));
   var color = new THREE.Color(0, 0, 0);
   var geo = new THREE.EdgesGeometry(box);
   var mat = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
