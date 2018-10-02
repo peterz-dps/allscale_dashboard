@@ -222,9 +222,9 @@ function buildScene() {
     boxSize.multiply(cell_size).sub(gap);
 
     // skip too small boxes
-    if (boxSize.x <= 0 || boxSize.y <= 0 || boxSize.z <= 0) {
-      return;
-    }
+    boxSize.x = Math.max(boxSize.x, 0);
+    boxSize.y = Math.max(boxSize.y, 0);
+    boxSize.z = Math.max(boxSize.z, 0);
 
     var position = cell_size.clone().multiply(boxCenter).add(origin);
     var box = createBox(boxSize, position);
