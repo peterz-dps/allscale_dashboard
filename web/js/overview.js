@@ -60,10 +60,7 @@ function initNodes() {
           $('<div>').addClass('node-id').text(i),
           $('<div>').addClass('node-color').attr('style', `background-color: ${nodeColor[i]}`)
         ).click(function () {
-          ws.send(JSON.stringify({
-            type: 'toggle_state',
-            node: i,
-          }));
+          ws.send(`toggle_node ${i}`);
         })
     );
   }
@@ -247,10 +244,7 @@ function initLineWidget(id) {
 // ------------------------------------------------------------------ Controls
 
 $('#scheduler').on('change', function (e) {
-  ws.send(JSON.stringify({
-    type: 'scheduler',
-    scheduler: this.value
-  }));
+  ws.send(`set_scheduler ${this.value}`);
 });
 
 // ------------------------------------------------------------------ Utilities
