@@ -37,6 +37,10 @@ function initSummary() {
   widgets.summary_efficiency = initGageWidget('summary-efficiency', 'Efficiency', colorLowBad);
   widgets.summary_power = initGageWidget('summary-power', 'Power', colorLowGood);
   widgets.summary_score = initGageWidget('summary-score', 'Score', colorLowBad);
+
+  $('#summary-speed').append(addSlider('speed-objective', 'set_speed'));
+  $('#summary-efficiency').append(addSlider('efficiency-objective', 'set_efficiency'));
+  $('#summary-power').append(addSlider('power-objective', 'set_power'));
 }
 
 function initNodes() {
@@ -246,6 +250,38 @@ function initLineWidget(id) {
 $('#scheduler').on('change', function (e) {
   ws.send(`set_scheduler ${this.value}`);
 });
+
+// ------------------------------------------------------------------ Sliders
+
+function addSlider(id, cmd) {
+  let $input = $('<input>')
+    .attr('id', id)
+    .attr('type', 'range')
+    .attr('min', 0)
+    .attr('max', 2)
+    .attr('step', 0.25)
+    .attr('value', 1)
+    .attr('list', `${id}-list`)
+    .change(function () {
+      ws.send(`${cmd} ${this.value}`);
+    });
+
+  let $list = $('<datalist>').attr('id', `${id}-list`);
+
+  for (let i = 0; i <= 2; i += 0.25) {
+    $list.append($('<option>').attr('value', i));
+  }
+
+  return $('<div>')
+    .addClass('slider')
+    .append(
+      $input,
+      $list,
+      $('<label>').addClass('slider-left').text('0'),
+      $('<label>').addClass('slider-center').text('1'),
+      $('<label>').addClass('slider-right').text('2'),
+    );
+}
 
 // ------------------------------------------------------------------ Utilities
 

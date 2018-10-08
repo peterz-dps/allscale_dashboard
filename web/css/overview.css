@@ -40,6 +40,7 @@ body {
 #summary-power,
 #summary-score {
   display: inline-block;
+  vertical-align: top;
   width: 140px;
 }
 
@@ -127,6 +128,31 @@ body {
   top: 25px;
   bottom: 0px;
   width: 34px;
+}
+
+.slider {
+  position: relative;
+  width: 130px;
+}
+
+.slider-left,
+.slider-center,
+.slider-right {
+  position: absolute;
+  bottom: -2px;
+  font-size: 10px;
+}
+
+.slider-left {
+  left: 0;
+}
+
+.slider-center {
+  left: 62px;
+}
+
+.slider-right {
+  right: 0;
 }
 
 /* ------------------------------------------------------- Data Distribution */
