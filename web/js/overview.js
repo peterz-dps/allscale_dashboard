@@ -106,6 +106,10 @@ function processStatus(data) {
 
   $('#scheduler').val(data.scheduler);
 
+  $('#speed-objective').val(data.objective_exponent.speed);
+  $('#efficiency-objective').val(data.objective_exponent.efficiency);
+  $('#power-objective').val(data.objective_exponent.power);
+
   if (!refresher) {
     setRefreshInterval(500);
   }
