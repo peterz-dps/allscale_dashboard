@@ -33,8 +33,6 @@ Every message received from the runtime will be forwarded to *all* websocket ins
 
 See [`send_test_message.py`](scripts/send_test_message.py) and [`receive_test_message`](scripts/receive_test_message.py) for a very basic example.
 
-The rough specification for status updates can be found in [`runtime_state_dump_example.json`](docs/runtime_state_dump_example.json).
-
 The random message generator can be used simultaneously.
 
 ## Performance
