@@ -236,14 +236,21 @@ const (
 var timeStep int64 = 1
 
 type statusUpdate struct {
-	Time       int64              `json:"time"`
-	Type       string             `json:"type"`
-	Scheduler  string             `json:"scheduler"`
-	Speed      float64            `json:"speed"`
-	Efficiency float64            `json:"efficiency"`
-	Power      float64            `json:"power"`
-	Score      float64            `json:"score"`
-	Nodes      []nodeStatusUpdate `json:"nodes"`
+	Time              int64              `json:"time"`
+	Type              string             `json:"type"`
+	Scheduler         string             `json:"scheduler"`
+	Speed             float64            `json:"speed"`
+	Efficiency        float64            `json:"efficiency"`
+	Power             float64            `json:"power"`
+	Score             float64            `json:"score"`
+	ObjectiveExponent objectiveExponent  `json:"objective_exponent"`
+	Nodes             []nodeStatusUpdate `json:"nodes"`
+}
+
+type objectiveExponent struct {
+	Speed      float64 `json:"speed"`
+	Efficiency float64 `json:"efficiency"`
+	Power      float64 `json:"power"`
 }
 
 type nodeStatusUpdate struct {
@@ -305,7 +312,12 @@ func messageGenerator(updateInterval time.Duration) {
 			Efficiency: rand.Float64(),
 			Power:      rand.Float64(),
 			Score:      rand.Float64(),
-			Nodes:      nodes,
+			ObjectiveExponent: objectiveExponent{
+				Speed:      1.0,
+				Efficiency: 1.0,
+				Power:      1.0,
+			},
+			Nodes: nodes,
 		}
 
 		data, err := json.Marshal(msg)
