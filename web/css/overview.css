@@ -32,7 +32,12 @@ body {
 }
 
 #main {
+  border-collapse: separate;
   border-spacing: 10px;
+}
+
+#logo {
+  vertical-align: baseline;
 }
 
 #summary-speed,
@@ -61,7 +66,7 @@ body {
 }
 
 #legend {
-  width: 120px;
+  width: 124px;
 }
 
 #legend > div {
@@ -83,7 +88,7 @@ body {
   width: 12px;
   height: 12px;
 
-  margin-left: 18px;
+  margin-left: 12px;
 
   border: solid thin gray;
   border-radius: 2px;
@@ -103,13 +108,13 @@ body {
   top: 25px;
   left: 40px;
   right: 20px;
-  bottom: 20px;
+  bottom: 24px;
 }
 
 .chart-title {
   position: absolute;
   top: 5px;
-  left: 40px;
+  left: 50px;
   right: 20px;
   font-size: 14px;
   color: rgb(153, 153, 153);
@@ -120,7 +125,7 @@ body {
   left: 40px;
   right: 20px;
   bottom: 0px;
-  height: 20px;
+  height: 24px;
 }
 
 .y-axis {
@@ -139,7 +144,7 @@ body {
 .slider-center,
 .slider-right {
   position: absolute;
-  bottom: -2px;
+  bottom: -8px;
   font-size: 10px;
 }
 
