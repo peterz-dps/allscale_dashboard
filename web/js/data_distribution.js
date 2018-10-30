@@ -133,14 +133,22 @@ updateDataModel([]);
 
 var pcam, ocam;
 var camera, scene, renderer;
-var geometry, material, mesh;
+var objects, mesh;
 
 var controls;
+
+objects = [];
 
 init();
 animate();
 
 function buildScene() {
+
+  // clear old scene
+  objects.forEach(function (obj){
+    obj.dispose();
+  });
+  objects = [];
 
   function createBox(size, pos) {
     // create the box geometry
@@ -153,6 +161,9 @@ function buildScene() {
     var matrix = new THREE.Matrix4();
     matrix.compose(position, quaternion, scale);
     geometry.applyMatrix(matrix);
+
+    objects.push(geometry);
+
     return geometry;
   }
 
@@ -222,9 +233,10 @@ function buildScene() {
     boxSize.multiply(cell_size).sub(gap);
 
     // skip too small boxes
-    boxSize.x = Math.max(boxSize.x, 0);
-    boxSize.y = Math.max(boxSize.y, 0);
-    boxSize.z = Math.max(boxSize.z, 0);
+    boxSize.x = Math.max(boxSize.x, 0.001);
+    boxSize.y = Math.max(boxSize.y, 0.001);
+    boxSize.z = Math.max(boxSize.z, 0.001);
+
 
     var position = cell_size.clone().multiply(boxCenter).add(origin);
     var box = createBox(boxSize, position);
@@ -234,6 +246,7 @@ function buildScene() {
 
     // create the filling
     var material = new THREE.MeshStandardMaterial();
+    objects.push(material);
     material.color = color.clone();
     material.emissive = color.clone();
     material.transparent = true;
@@ -244,8 +257,11 @@ function buildScene() {
 
     // get a wireframe for it
     var geo = new THREE.EdgesGeometry(box);
+    objects.push(geo);
     var mat = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+    objects.push(mat);
     var wireframe = new THREE.LineSegments(geo, mat);
+
     scene.add(wireframe);
 
   });
@@ -255,7 +271,9 @@ function buildScene() {
   var color = new THREE.Color(0, 0, 0);
   var geo = new THREE.EdgesGeometry(box);
   var mat = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+  objects.push(mat);
   var wireframe = new THREE.LineSegments(geo, mat);
+  objects.push(geo);
   scene.add(wireframe);
 
 }
