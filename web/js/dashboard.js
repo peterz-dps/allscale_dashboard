@@ -194,7 +194,7 @@ function initNetWidget(id) {
   new Rickshaw.Graph.Axis.Y({
     graph: graph,
     orientation: 'left',
-    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    tickFormat: formatBase1024KMGTP,
     pixelsPerTick: 16,
     element: document.querySelector(`#node${id} .node-net .node-y-axis`),
   });
