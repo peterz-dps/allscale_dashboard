@@ -8,6 +8,7 @@ var widgets = {};
 var maxNetwork = 0;
 var refresher;
 var dataStore = Array(numNodes).fill();
+var summaryDataStore = { cpu: [], mem: [] }; // abusing "mem" for power
 
 function initSummary() {
   $('#summary').append(
@@ -18,20 +19,29 @@ function initSummary() {
         $('<div>').addClass('node-info').append(
           $('<div>').addClass('node-title').text(`System`),
         ),
-        $('<div>').addClass('node-gap'),
+        //$('<div>').addClass('node-gap'),
+        $('<div>').addClass(`node-cpu`).append(
+          $('<div>').addClass('node-chart-title').text('Average CPU Usage'),
+          $('<div>').addClass('node-x-axis'),
+          $('<div>').addClass('node-y-axis'),
+          $('<div>').addClass('node-time-chart')
+        ),
         $('<div>').addClass('node-spd'),
-        $('<div>').addClass('node-eff'),
+        $('<div>').addClass(`node-mem`).append(
+          $('<div>').addClass('node-chart-title').text('Power'),
+          $('<div>').addClass('node-x-axis'),
+          $('<div>').addClass('node-y-axis'),
+          $('<div>').addClass('node-time-chart')
+        ),
         $('<div>').addClass('node-pow'),
-        $('<div>').addClass('node-sco'),
-        $('<div>').addClass('node-details'),
       )
   );
 
   summary = {
+    'cpu': initCpuWidget("-total"),
     'spd': initSpdWidget("-total"),
-    'eff': initEffWidget("-total"),
+    'mem': initMemWidget("-total"),
     'pow': initPowWidget("-total"),
-    'sco': initScoreWidget("-total"),
   }
 }
 
@@ -45,17 +55,19 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-state').text('offline'),
       ),
       $('<div>').addClass(`node-cpu`).append(
-        $('<div>').addClass('node-chart-title').text('CPU'),
+        $('<div>').addClass('node-chart-title').text('CPU Usage'),
         $('<div>').addClass('node-x-axis'),
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
+      $('<div>').addClass('node-spd'),
       $('<div>').addClass(`node-mem`).append(
-        $('<div>').addClass('node-chart-title').text('Memory'),
+        $('<div>').addClass('node-chart-title').text('Power'),
         $('<div>').addClass('node-x-axis'),
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
+      $('<div>').addClass('node-pow'),
       $('<div>').addClass('node-net').append(
         $('<div>').addClass('node-chart-title').append(
           'Network &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
@@ -67,10 +79,6 @@ function mkNodeWidgetContainer(id) {
         $('<div>').addClass('node-y-axis'),
         $('<div>').addClass('node-time-chart')
       ),
-      $('<div>').addClass('node-spd'),
-      $('<div>').addClass('node-eff'),
-      $('<div>').addClass('node-pow'),
-      $('<div>').addClass('node-details'),
     );
 }
 
@@ -94,7 +102,6 @@ function initNodeWidgets(id) {
     'mem': initMemWidget(id),
     'net': initNetWidget(id),
     'spd': initSpdWidget(id),
-    'eff': initEffWidget(id),
     'pow': initPowWidget(id),
   }
 }
@@ -109,7 +116,7 @@ function initCpuWidget(id) {
       {
         color: '#5b9bd5',
         stroke: '#41719c',
-        data: dataStore[id].cpu,
+        data: String(id) == "-total" ? summaryDataStore.cpu : dataStore[id].cpu,
       }
     ]
   });
@@ -134,13 +141,15 @@ function initCpuWidget(id) {
 function initMemWidget(id) {
   let graph = new Rickshaw.Graph({
     element: document.querySelector(`#node${id} .node-mem .node-time-chart`),
+    min: 2,
+    max: String(id) == "-total" ? 5.2 * 16 : 5.2,
     interpolation: 'linear',
     stroke: true,
     series: [
       {
         color: '#ed7d31',
         stroke: '#ae5a21',
-        data: dataStore[id].memory,
+        data: String(id) == "-total" ? summaryDataStore.mem : dataStore[id].memory,
       }
     ]
   });
@@ -218,19 +227,26 @@ function initGageWidget(id, kind, label, colors) {
 }
 
 function initSpdWidget(id) {
-  return initGageWidget(id, "spd", "Speed", ['#e54b4b', '#faed70', '#2ddafd']);
-}
-
-function initEffWidget(id) {
-  return initGageWidget(id, "eff", "Efficiency", ['#e54b4b', '#faed70', '#2ddafd']);
+  let res = initGageWidget(id, "spd", String(id) == "-total" ? "Avg CPU Speed" : "CPU Speed", ['#2ddafd', '#faed70', '#e54b4b']);
+  res.config.min = 300000;
+  res.config.max = 1800000;
+  res.config.textRenderer = function(value) {
+    return (value / 1000000.0).toFixed(1) + "GHz";
+  };
+  return res;
 }
 
 function initPowWidget(id) {
-  return initGageWidget(id, "pow", "Power", ['#2ddafd', '#faed70', '#e54b4b']);
-}
-
-function initScoreWidget(id) {
-  return initGageWidget(id, "sco", "Score", ['#e54b4b', '#faed70', '#2ddafd']);
+  let res = initGageWidget(id, "pow", String(id) == "-total" ? "Total Power" : "Power", ['#2ddafd', '#faed70', '#e54b4b']);
+  res.config.min = 2;
+  res.config.max = 5.2;
+  if(String(id) == "-total") {
+    res.config.max *= numNodes;
+  }
+  res.config.textRenderer = function(value) {
+    return value.toFixed(1) + "W";
+  };
+  return res;
 }
 
 
@@ -238,35 +254,29 @@ function updateDataStore(nodeData) {
   let id = nodeData.id;
 
   $(`#node${id} .node-state`).text(nodeData.state);
-  if (nodeData.state == "offline") {
-    $(`#node${id}`).addClass('node-offline');
 
-    dataStore[id].online = false;
-    dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: 0 });
-    dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: 0 });
-    dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: 0 });
-    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: 0 });
-    dataStore[id].raw = undefined;
-
-    return;
-  } else {
-    $(`#node${id}`).removeClass('node-offline');
-
-    dataStore[id].online = true;
-    dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
-    dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.mem_load });
-    dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
-    dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: -nodeData.network_out });
-    dataStore[id].raw = nodeData;
-  }
+  dataStore[id].timeStamp = timeStep;
+  dataStore[id].cpu = shiftPush(dataStore[id].cpu, { x: timeStep, y: nodeData.cpu_load * 100 });
+  dataStore[id].memory = shiftPush(dataStore[id].memory, { x: timeStep, y: nodeData.cur_power.toFixed(1) });
+  dataStore[id].network_in = shiftPush(dataStore[id].network_in, { x: timeStep, y: nodeData.network_in });
+  dataStore[id].network_out = shiftPush(dataStore[id].network_out, { x: timeStep, y: -nodeData.network_out });
+  dataStore[id].raw = nodeData;
 }
 
 function updateWidget(id) {
   let nodeData = dataStore[id].raw;
+  if (!nodeData) return;
+  let currentTime = Math.floor(Date.now() / 1000);
 
-  if (!dataStore[id].online) return;
-
-  widgets[id].mem.max = nodeData.total_memory;
+  if(dataStore[id].timeStamp + 5 < currentTime) {
+    $(`#node${id}`).addClass('node-offline');
+    $(`#node${id} .node-state`).text("offline");
+    return;
+    
+  } else {
+    $(`#node${id}`).removeClass('node-offline');
+    $(`#node${id} .node-state`).text("active");
+  }
 
   maxNetwork = Math.max(maxNetwork, nodeData.network_in, nodeData.network_out);
   widgets[id].net.max = maxNetwork;
@@ -275,20 +285,40 @@ function updateWidget(id) {
   widgets[id].cpu.render();
   widgets[id].mem.render();
   widgets[id].net.render();
-  widgets[id].spd.refresh(nodeData.speed * 100);
-  widgets[id].eff.refresh(nodeData.efficiency * 100);
-  widgets[id].pow.refresh(nodeData.power * 100);
-
-  $(`#node${id} .node-details`).empty().append(
-    $('<p>').html(`Task Throughput<br>${nodeData.task_throughput.toFixed(2)} &nbsp;&nbsp; (${nodeData.weighted_task_througput.toFixed(2)})`),
-    $('<p>').html(`Owned Data<br># ${nodeData.owned_data.length}`),
-  );
+  widgets[id].spd.refresh(nodeData.speed);
+  widgets[id].pow.refresh(nodeData.cur_power);
 }
 
 function updateWidgets() {
   for (let id = 0; id < numNodes; id++) {
     updateWidget(id);
   }
+  
+  let currentTime = Math.floor(Date.now() / 1000);
+
+  let totalCPULoad = 0;
+  let totalCPUSpeed = 0;
+  let totalPower = 0;
+  let onlineNodeCount = 0;
+  for(let id = 0; id < numNodes; ++id) {
+    if(!dataStore[id].raw) continue;
+    if(dataStore[id].timeStamp + 5 < currentTime) continue;
+
+    totalCPULoad += dataStore[id].raw.cpu_load;
+    totalCPUSpeed += dataStore[id].raw.speed;
+    totalPower += dataStore[id].raw.cur_power;
+    ++onlineNodeCount
+  }
+  
+  let avgSpeed = onlineNodeCount != 0 ? totalCPUSpeed / onlineNodeCount : 0
+  summary.spd.refresh(avgSpeed);
+  summary.pow.refresh(totalPower);
+  
+  let avgCPULoad = totalCPULoad != 0 ? totalCPULoad / onlineNodeCount : 0
+  summaryDataStore.cpu = shiftPush(summaryDataStore.cpu, { x: currentTime, y: avgCPULoad * 100 });
+  summary.cpu.render();
+  summaryDataStore.mem = shiftPush(summaryDataStore.mem, { x: currentTime, y: totalPower });
+  summary.mem.render();
 }
 
 function processMessage(evt) {
@@ -302,57 +332,8 @@ function processMessage(evt) {
   }
 }
 
-function fillInMissingNodes(data) {
-
-  var givenNodes = new Set();
-  for (let i = 0; i < data.nodes.length; i++) {
-    givenNodes.add(data.nodes[i].id);
-  }
-
-  for (let i = 0; i < numNodes; i++) {
-    if (givenNodes.has(i)) continue;
-    var node = {};
-    node.id = i;
-    node.state = "offline";
-    data.nodes.push(node);
-  }
-
-}
-
-function updateSummary(data) {
-
-  summary.spd.refresh(data.speed * 100);
-  summary.eff.refresh(data.efficiency * 100);
-  summary.pow.refresh(data.power * 100);
-  summary.sco.refresh(data.score * 100);
-
-  var total_tasks = 0;
-  var total_weighted_tasks = 0;
-  var items = new Set();
-  data.nodes.forEach(function (cur) {
-    if (cur.state == "offline") return;
-    total_tasks += cur.task_throughput;
-    total_weighted_tasks += cur.weighted_task_througput;
-    cur.owned_data.forEach(function (entry) {
-      items.add(entry.id);
-    });
-  });
-
-  $(`#node-total .node-details`).empty().append(
-    $('<p>').html(`Task Throughput<br>${total_tasks.toFixed(2)} &nbsp;&nbsp; (${total_weighted_tasks.toFixed(2)})`),
-    $('<p>').html(`Data Items<br># ${items.size}`),
-  );
-}
-
 function processStatus(data) {
-  if (timeStep >= data.time) return;
-  timeStep = data.time;
-
-  // extend for non-specified nodes
-  fillInMissingNodes(data);
-
-  // update summary
-  updateSummary(data);
+  timeStep = Math.floor(Date.now() / 1000);
 
   // update nodes
   for (let i = 0; i < data.nodes.length; i++) {
@@ -360,7 +341,7 @@ function processStatus(data) {
   }
 
   if (!refresher) {
-    setRefreshInterval(500);
+    setRefreshInterval(1000);
   }
 }
 
